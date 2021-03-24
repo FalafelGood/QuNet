@@ -7,7 +7,7 @@ using Statistics
 grid_size = 100
 num_pairs = 50
 num_trials = 100
-max_paths = 1
+max_paths = 4
 
 # Get the "coordinates" associated with end users
 #   that is, the associated efficiency and fidelity of the paths connecting them (if any)

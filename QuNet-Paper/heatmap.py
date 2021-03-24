@@ -34,10 +34,9 @@ P0 = 0.201
 R = (1-P0) * E
 
 # QKD contour
-Z = R * (1 - (F * np.log(1 - F)/np.log(2) + (1 - F) * np.log(F)/np.log(2)))
+C = R * (1 + (F * np.log(F)/np.log(2) + (1 - F) * np.log(1 - F)/np.log(2)))
 
 # Overlay the contour for Z = 1, 2, 3, ...
-# CS = axes.contour(E, F, Z, levels = [1, 2, 3, 4, 5])
-# axes.clabel(CS, inline=1, fontsize=10, fmt="%1.1f")
-# plt.show()
-plt.savefig("singleheat.pdf")
+CS = axes.contour(E, F, C, [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6], cmap="cool")
+axes.clabel(CS, inline=1, fontsize=10, fmt="%1.2f")
+plt.savefig("multiheat.pdf")

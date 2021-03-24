@@ -602,11 +602,11 @@ function plot_bandwidth_ratio_with_memory_rate(num_trials::Int64, perc_range::Tu
             T_copy = deepcopy(T)
 
             # Get i random userpairs with asynchronus src and dst nodes.
-            mem_user_pairs = make_user_pairs(T_mem, num_pairs, src_layer=-1, dst_layer=-1)
+            # mem_user_pairs = make_user_pairs(T_mem, num_pairs, src_layer=-1, dst_layer=-1)
             user_pairs = make_user_pairs(T, num_pairs, src_layer=-1, dst_layer=-1)
 
             # Add async nodes
-            QuNet.add_async_nodes!(T_mem, mem_user_pairs, ϵ=asynchronus_weight)
+            QuNet.add_async_nodes!(T_mem, user_pairs, ϵ=asynchronus_weight)
             QuNet.add_async_nodes!(T_copy, user_pairs, ϵ=asynchronus_weight)
 
             # Get pathset data
