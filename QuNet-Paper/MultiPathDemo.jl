@@ -341,12 +341,15 @@ function plot_with_gridsize(num_trials::Int64, num_pairs::Int64, min_size::Int64
     @assert min_size < max_size
     @assert num_pairs*2 <= min_size^2 "Graph size too small for num_pairs"
 
+    # Increment constant
+    inc = 5
+
     perf_data = []
     perf_err = []
     path_data = []
     path_err = []
 
-    size_list = collect(min_size:1:max_size)
+    size_list = collect(min_size:inc:max_size)
     for i in size_list
         println("Collecting for gridsize: $i")
         # Generate ixi graph:
@@ -361,7 +364,7 @@ function plot_with_gridsize(num_trials::Int64, num_pairs::Int64, min_size::Int64
     end
 
     # Get values for x axis
-    x = collect(min_size:1:max_size)
+    x = collect(min_size:inc:max_size)
 
     # Extract data from performance
     loss = collect(map(x->x["loss"], perf_data))
@@ -381,23 +384,23 @@ function plot_with_gridsize(num_trials::Int64, num_pairs::Int64, min_size::Int64
         "path_err:", path_err])
     end
 
-    # Extract from path data
-    P0 = [path_data[i][1]/num_pairs for i in 1:(max_size-min_size)+1]
-    P1 = [path_data[i][2]/num_pairs for i in 1:(max_size-min_size)+1]
-    P2 = [path_data[i][3]/num_pairs for i in 1:(max_size-min_size)+1]
-    P3 = [path_data[i][4]/num_pairs for i in 1:(max_size-min_size)+1]
-    P4 = [path_data[i][5]/num_pairs for i in 1:(max_size-min_size)+1]
+    # Extract from path data TODO (max_size - min_size)
+    P0 = [path_data[i][1]/num_pairs for i in 1:length(path_data)]
+    P1 = [path_data[i][2]/num_pairs for i in 1:length(path_data)]
+    P2 = [path_data[i][3]/num_pairs for i in 1:length(path_data)]
+    P3 = [path_data[i][4]/num_pairs for i in 1:length(path_data)]
+    P4 = [path_data[i][5]/num_pairs for i in 1:length(path_data)]
 
-    P0e = [path_err[i][1]/num_pairs for i in 1:(max_size-min_size)+1]
-    P1e = [path_err[i][2]/num_pairs for i in 1:(max_size-min_size)+1]
-    P2e = [path_err[i][3]/num_pairs for i in 1:(max_size-min_size)+1]
-    P3e = [path_err[i][4]/num_pairs for i in 1:(max_size-min_size)+1]
-    P4e = [path_err[i][5]/num_pairs for i in 1:(max_size-min_size)+1]
+    P0e = [path_err[i][1]/num_pairs for i in 1:length(path_err)]
+    P1e = [path_err[i][2]/num_pairs for i in 1:length(path_err)]
+    P2e = [path_err[i][3]/num_pairs for i in 1:length(path_err)]
+    P3e = [path_err[i][4]/num_pairs for i in 1:length(path_err)]
+    P4e = [path_err[i][5]/num_pairs for i in 1:length(path_err)]
 
     # Plot
-    plot(x, loss, ylims=(0,1), seriestype = :scatter, yerror = loss_err, label=L"$\eta$",
+    plot(x, loss, ylims=(0,1), linewidth=2, yerror = loss_err, label=L"$\eta$",
     legend=:bottomright)
-    plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$")
+    plot!(x, z, linewidth=2, yerror = z_err, label=L"$F$")
     xaxis!(L"$\textrm{Grid Size}$")
     savefig("plots/cost_gridsize.png")
     savefig("plots/cost_gridsize.pdf")
@@ -665,7 +668,7 @@ Uncomment functions to reproduce plots from the paper / create your own
 # plot_with_timedepth(1000, 15)
 
 # Usage : (num_trials::Int64, num_pairs::Int64, min_size::Int64, max_size::Int64)
-# plot_with_gridsize(100, 40, 10, 150)
+plot_with_gridsize(500, 40, 10, 150)
 
 # Usage : (num_trials::Int64, num_pairs::Int64, min_size::Int64, max_size::Int64)
 # plot_maxpaths_with_gridsize(5000, 10, 50)
