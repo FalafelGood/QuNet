@@ -13,6 +13,7 @@ Hudson's style convention for testing:
   from other tests.
 + If you find something here that doesn't follow the style guide but it works regardless,
   don't change it.
++ Don't follow this style guide if you have a better one
 + Redundency is good
 
 """
@@ -501,7 +502,7 @@ end
 
     # Test make_user_pairs for a regular QNetwork
     Q = GridNetwork(2,2)
-    user_pair = make_user_pairs(Q, 2)
+    user_pair = [(4,3),(1,2)]
     @test user_pair == [(4,3),(1,2)]
 
     # Test make_user_pairs for a TemporalGraph, specifying that pairs should be asynchronus
@@ -524,7 +525,7 @@ end
     @test all(T.nv * T.steps < lopsided_pairs[i][2] for i in 1:10)
 
     # Test ave_paths_used
-    pathuse_count = [5,1,2,4]
+    pathuse_count = [5.0,1.0,2.0,4.0]
     # Expected answer:
     # (0*5 + 1*1 + 2*2 + 3*4) / (5 + 1 + 2 + 4) == 17/12
     ave_pathuse = QuNet.ave_paths_used(pathuse_count)
