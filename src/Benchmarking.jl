@@ -253,6 +253,7 @@ function heat_data(network::Union{QNetwork, QuNet.TemporalGraph},
             coord = Vector{Float64}()
             push!(coord, usercost["loss"])
             push!(coord, usercost["Z"])
+            # Add this new coordinate to the list
             push!(coord_list, coord)
         end
     end

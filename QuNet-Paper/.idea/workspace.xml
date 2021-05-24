@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="690d38f4-ab6b-46ce-88c4-0c9fee20a2a5" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/heatmap.jl" beforeDir="false" afterPath="$PROJECT_DIR$/heatmap.jl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/heatmap.py" beforeDir="false" afterPath="$PROJECT_DIR$/heatmap.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/multiheat.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/multiheat.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/singleheat.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/singleheat.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../data/heatmap.csv" beforeDir="false" afterPath="$PROJECT_DIR$/../data/heatmap.csv" afterDir="false" />
-    </list>
+    <list default="true" id="690d38f4-ab6b-46ce-88c4-0c9fee20a2a5" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
+  <component name="JupyterTrust" id="0eb8e0b8-a75a-4815-aa1b-ba23daf41a6e" />
   <component name="ProjectId" id="1q5blwoCvIMaSIVmecPkRGyUec3" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
@@ -31,7 +32,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.new_heatmap_plot">
     <configuration name="heatmap" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="QuNet-Paper" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -54,8 +55,31 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="new_heatmap_plot" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="QuNet-Paper" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/new_heatmap_plot.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.new_heatmap_plot" />
         <item itemvalue="Python.heatmap" />
       </list>
     </recent_temporary>
@@ -74,6 +98,18 @@
       <workItem from="1616386766836" duration="8847000" />
       <workItem from="1616404446731" duration="3948000" />
       <workItem from="1616461119787" duration="1331000" />
+      <workItem from="1618988836894" duration="2529000" />
+      <workItem from="1619047542944" duration="6868000" />
+      <workItem from="1619061762018" duration="1634000" />
+      <workItem from="1619136303422" duration="4068000" />
+      <workItem from="1619155131253" duration="1591000" />
+      <workItem from="1619672949695" duration="1453000" />
+      <workItem from="1619674424383" duration="458000" />
+      <workItem from="1619674903061" duration="3737000" />
+      <workItem from="1619678846431" duration="2550000" />
+      <workItem from="1619738480214" duration="1465000" />
+      <workItem from="1619855470374" duration="624000" />
+      <workItem from="1619865317666" duration="978000" />
     </task>
     <servers />
   </component>
@@ -81,44 +117,53 @@
     <option name="version" value="2" />
   </component>
   <component name="WindowStateProjectService">
-    <state width="1344" height="282" key="GridCell.Tab.0.bottom" timestamp="1616462451260">
+    <state x="729" y="296" width="452" height="522" key="FileChooserDialogImpl" timestamp="1619675935572">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
-    <state width="1344" height="282" key="GridCell.Tab.0.bottom/0.27.1920.1053@0.27.1920.1053" timestamp="1616462451260" />
-    <state width="1344" height="282" key="GridCell.Tab.0.center" timestamp="1616462451260">
+    <state x="729" y="296" width="452" height="522" key="FileChooserDialogImpl/0.27.1920.1053@0.27.1920.1053" timestamp="1619675935572" />
+    <state width="1324" height="319" key="GridCell.Tab.0.bottom" timestamp="1619752843044">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
-    <state width="1344" height="282" key="GridCell.Tab.0.center/0.27.1920.1053@0.27.1920.1053" timestamp="1616462451260" />
-    <state width="1344" height="282" key="GridCell.Tab.0.left" timestamp="1616462451259">
+    <state width="1324" height="319" key="GridCell.Tab.0.bottom/0.27.1920.1053@0.27.1920.1053" timestamp="1619752843044" />
+    <state width="1324" height="319" key="GridCell.Tab.0.center" timestamp="1619752843043">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
-    <state width="1344" height="282" key="GridCell.Tab.0.left/0.27.1920.1053@0.27.1920.1053" timestamp="1616462451259" />
-    <state width="1344" height="282" key="GridCell.Tab.0.right" timestamp="1616462451260">
+    <state width="1324" height="319" key="GridCell.Tab.0.center/0.27.1920.1053@0.27.1920.1053" timestamp="1619752843043" />
+    <state width="1324" height="319" key="GridCell.Tab.0.left" timestamp="1619752843043">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
-    <state width="1344" height="282" key="GridCell.Tab.0.right/0.27.1920.1053@0.27.1920.1053" timestamp="1616462451260" />
-    <state width="1874" height="340" key="GridCell.Tab.1.bottom" timestamp="1616397153121">
+    <state width="1324" height="319" key="GridCell.Tab.0.left/0.27.1920.1053@0.27.1920.1053" timestamp="1619752843043" />
+    <state width="1324" height="319" key="GridCell.Tab.0.right" timestamp="1619752843043">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
-    <state width="1874" height="340" key="GridCell.Tab.1.bottom/0.27.1920.1053@0.27.1920.1053" timestamp="1616397153121" />
-    <state width="1874" height="340" key="GridCell.Tab.1.center" timestamp="1616397153121">
+    <state width="1324" height="319" key="GridCell.Tab.0.right/0.27.1920.1053@0.27.1920.1053" timestamp="1619752843043" />
+    <state width="1324" height="327" key="GridCell.Tab.1.bottom" timestamp="1619678744466">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
-    <state width="1874" height="340" key="GridCell.Tab.1.center/0.27.1920.1053@0.27.1920.1053" timestamp="1616397153121" />
-    <state width="1874" height="340" key="GridCell.Tab.1.left" timestamp="1616397153121">
+    <state width="1324" height="327" key="GridCell.Tab.1.bottom/0.27.1920.1053@0.27.1920.1053" timestamp="1619678744466" />
+    <state width="1324" height="327" key="GridCell.Tab.1.center" timestamp="1619678744465">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
-    <state width="1874" height="340" key="GridCell.Tab.1.left/0.27.1920.1053@0.27.1920.1053" timestamp="1616397153121" />
-    <state width="1874" height="340" key="GridCell.Tab.1.right" timestamp="1616397153121">
+    <state width="1324" height="327" key="GridCell.Tab.1.center/0.27.1920.1053@0.27.1920.1053" timestamp="1619678744465" />
+    <state width="1324" height="327" key="GridCell.Tab.1.left" timestamp="1619678744465">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
-    <state width="1874" height="340" key="GridCell.Tab.1.right/0.27.1920.1053@0.27.1920.1053" timestamp="1616397153121" />
+    <state width="1324" height="327" key="GridCell.Tab.1.left/0.27.1920.1053@0.27.1920.1053" timestamp="1619678744465" />
+    <state width="1324" height="327" key="GridCell.Tab.1.right" timestamp="1619678744466">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="1324" height="327" key="GridCell.Tab.1.right/0.27.1920.1053@0.27.1920.1053" timestamp="1619678744466" />
     <state x="645" y="199" width="1022" height="737" key="SettingsEditor" timestamp="1616386903597">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
     <state x="645" y="199" width="1022" height="737" key="SettingsEditor/0.27.1920.1053@0.27.1920.1053" timestamp="1616386903597" />
+    <state width="695" height="526" key="XDebugger.FullValuePopup" timestamp="1619049274047">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="695" height="526" key="XDebugger.FullValuePopup/0.27.1920.1053@0.27.1920.1053" timestamp="1619049274047" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/QuNet_Paper$heatmap.coverage" NAME="heatmap Coverage Results" MODIFIED="1616462276071" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/QuNet_Paper$new_heatmap_plot.coverage" NAME="new_heatmap_plot Coverage Results" MODIFIED="1619739347864" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/QuNet_Paper$heatmap.coverage" NAME="heatmap Coverage Results" MODIFIED="1619674212838" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
