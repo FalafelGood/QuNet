@@ -659,7 +659,7 @@ end
 Uncomment functions to reproduce plots from the paper / create your own
 """
 # Usage : (max_pairs::Int64, num_trials::Int64)
-# plot_with_userpairs(50, 5000)
+plot_with_userpairs(50, 5000)
 
 # Usage : (perc_range::Tuple{Float64, Float64, Float64}, num_trials::Int64)
 # plot_with_percolations((0.0, 0.01, 0.7), 5000)
@@ -668,7 +668,7 @@ Uncomment functions to reproduce plots from the paper / create your own
 # plot_with_timedepth(1000, 15)
 
 # Usage : (num_trials::Int64, num_pairs::Int64, min_size::Int64, max_size::Int64)
-plot_with_gridsize(500, 40, 10, 150)
+# plot_with_gridsize(500, 40, 10, 150)
 
 # Usage : (num_trials::Int64, num_pairs::Int64, min_size::Int64, max_size::Int64)
 # plot_maxpaths_with_gridsize(5000, 10, 50)
