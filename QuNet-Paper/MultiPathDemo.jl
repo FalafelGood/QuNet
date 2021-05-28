@@ -653,7 +653,6 @@ function plot_bandwidth_ratio_with_memory_rate(num_trials::Int64, perc_range::Tu
 end
 
 
-
 # MAIN
 """
 Uncomment functions to reproduce plots from the paper / create your own

@@ -6,8 +6,9 @@ using QuNet
 using LightGraphs, SimpleWeightedGraphs, GraphPlot, MetaGraphs, Plots, Colors, Statistics
 using LaTeXStrings
 using JLD
+using Parameters
 
-data_filename = "data/userpairs"
+datafile = "data/userpairs"
 
 # Params
 max_pairs = 20::Int64
@@ -76,33 +77,18 @@ if generate_new_data == true
         i += 1
     end
 
-    # Save data to jld
-    @save "$data_filename.jdl"
-        max_pairs
-        num_trials
-        grid_size
-        perf_data
-        perf_err
-        path_data
-        path_err
-        cpp
-        cpp_err
-        avepath
+    # Save data
+    d = Dict{Symbol, Any}()
+    @pack! d = max_pairs, num_trials, grid_size, perf_data, perf_err, path_data, path_err, cpp, cpp_err, avepath
+    save("$datafile.jld", "$datafile", d)
+else
+    # Load data
+    if !isfile("$datafile.jld")
+        error("$datafile.jld not found in working directory")
+    end
+    d = load("$datafile.jld")["$datafile"]
+    @unpack max_pairs, num_trials, grid_size, perf_data, perf_err, path_data, path_err, cpp, cpp_err, avepath = d
 end
-
-# Load data from jdl
-# data/userpairs
-load("$data_filename.jdl",
-    "max_pairs",
-    "num_trials",
-    "grid_size",
-    "perf_data",
-    "perf_err",
-    "path_data",
-    "path_err",
-    "cpp",
-    "cpp_err",
-    "avepath")
 
 # Get values for x axis
 x = collect(1:max_pairs)

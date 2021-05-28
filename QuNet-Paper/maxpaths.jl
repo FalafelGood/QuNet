@@ -12,11 +12,11 @@ using Parameters
 
 
 datafile = "data/maxpaths"
-generate_new_data = true
+generate_new_data = false
 if generate_new_data == true
 
     # Params
-    num_trials = 500::Int64
+    num_trials = 10::Int64
     min_size = 10::Int64
     max_size = 50::Int64
 
@@ -44,14 +44,14 @@ if generate_new_data == true
     # Save data
     d = Dict{Symbol, Any}()
     @pack! d = num_trials, min_size, max_size, perf_data1, perf_data2, perf_data3, perf_data4
-    save("$datafile.jld", "$datafile", d)
+    save("$datafile.jld", "data", d)
 
 else
     # Load data
     if !isfile("$datafile.jld")
         error("$datafile.jld not found in working directory")
     end
-    d = load("$datafile.jld")["$datafile"]
+    d = load("$datafile.jld")["data"]
     @unpack num_trials, min_size, max_size, perf_data1, perf_data2, perf_data3, perf_data4 = d
 end
 
