@@ -20,8 +20,8 @@ end
 datafile = "data/timedepth"
 
 # Params
-num_trials = 100::Int64
-max_depth = 5::Int64
+num_trials = 1000::Int64
+max_depth = 15::Int64
 num_pairs = 40::Int64
 grid_size = 10::Int64
 

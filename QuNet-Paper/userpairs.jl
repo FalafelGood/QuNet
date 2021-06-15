@@ -11,10 +11,10 @@ using Parameters
 datafile = "data/userpairs"
 
 # Params
-max_pairs = 20::Int64
-num_trials = 100::Int64
+max_pairs = 50::Int64
+num_trials = 5000::Int64
 
-generate_new_data = false
+generate_new_data = true
 if generate_new_data == true
 
     # The average routing costs between end-users sampled over num_trials for different numbers of end-users
@@ -80,13 +80,13 @@ if generate_new_data == true
     # Save data
     d = Dict{Symbol, Any}()
     @pack! d = max_pairs, num_trials, grid_size, perf_data, perf_err, path_data, path_err, cpp, cpp_err, avepath
-    save("$datafile.jld", "$datafile", d)
+    save("$datafile.jld", "data", d)
 else
     # Load data
     if !isfile("$datafile.jld")
         error("$datafile.jld not found in working directory")
     end
-    d = load("$datafile.jld")["$datafile"]
+    d = load("$datafile.jld")["data"]
     @unpack max_pairs, num_trials, grid_size, perf_data, perf_err, path_data, path_err, cpp, cpp_err, avepath = d
 end
 

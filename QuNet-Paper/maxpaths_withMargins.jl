@@ -117,11 +117,5 @@ plot!(x[3:end], z_arr3[3:end], linewidth=2, label=L"$F_3 - 0.5$", linestyle=:das
 plot!(x[3:end], z_arr4[3:end], linewidth=2, label=L"$F_4 - 0.5$", linestyle=:dash, color =:purple, yaxis=:log)
 xaxis!(L"$\textrm{Grid Size}$")
 
-# d ^-1
-# d = exp.(-x/2)
-# d = 1.1 .^ (-x)
-d = 10 .^ (-x/30)
-plot!(x, d, color =:black, yaxis=:log)
-
 savefig("plots/cost_maxpathslog.png")
 savefig("plots/cost_maxpathslog.pdf")

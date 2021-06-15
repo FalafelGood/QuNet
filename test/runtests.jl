@@ -554,4 +554,10 @@ end
     # Check that the average number of paths used is 2
     @test ave_pathcounts[3] == 2.0
     @test ave_pathcounts_err == [0.0, 0.0, 0.0, 0.0]
+
+    # Test make_user_pairs_wbuffer
+    G = GridNetwork(5,5)
+    pairs = QuNet.make_user_pairs_wbuffer(G, 9, buffer = 1)
+    println("H")
+    println(pairs)
 end

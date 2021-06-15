@@ -44,11 +44,36 @@ function dict_err(dict_list)
 end
 
 
-"""Generate a list of user_pairs for a QNetwork"""
-function make_user_pairs(net::QNetwork, num_pairs::Int)::Vector{Tuple{Int64, Int64}}
+# """Generate a list of user_pairs for a QNetwork"""
+# function make_user_pairs(net::QNetwork, num_pairs::Int)::Vector{Tuple{Int64, Int64}}
+#     num_nodes = length(net.nodes)
+#     @assert num_nodes >= num_pairs*2 "Graph space too small for number of pairs"
+#     rand_space = Array(collect(1:num_nodes))
+#     pairs = Vector{Tuple}()
+#     i = 0
+#     while i < num_pairs
+#         idx = rand(1:length(rand_space))
+#         u = rand_space[idx]
+#         deleteat!(rand_space, idx)
+#         idx = rand(1:length(rand_space))
+#         v = rand_space[idx]
+#         deleteat!(rand_space, idx)
+#         chosen_pair = (u, v)
+#         push!(pairs, chosen_pair)
+#         i += 1
+#     end
+#     return pairs
+# end
+
+# TODO: This is probably a better function than above
+function make_user_pairs(net::QNetwork, num_pairs::Int; node_list=nothing)::Vector{Tuple{Int64, Int64}}
     num_nodes = length(net.nodes)
     @assert num_nodes >= num_pairs*2 "Graph space too small for number of pairs"
-    rand_space = Array(collect(1:num_nodes))
+    if node_list != nothing
+        rand_space = node_list
+    else
+        rand_space = Array(collect(1:num_nodes))
+    end
     pairs = Vector{Tuple}()
     i = 0
     while i < num_pairs
@@ -64,6 +89,27 @@ function make_user_pairs(net::QNetwork, num_pairs::Int)::Vector{Tuple{Int64, Int
     end
     return pairs
 end
+
+"""
+Generate a list of user_pairs for a square grid network, ensuring that there is an
+edge buffer of a given thickness.
+"""
+function make_user_pairs_wbuffer(squarenet::QNetwork, num_pairs::Int; buffer::Int=1)::Vector{Tuple{Int64, Int64}}
+    num_nodes = length(squarenet.nodes)
+    d = sqrt(num_nodes)
+    @assert isinteger(d) "Grid network is not square"
+    @assert buffer > 0
+    @assert d - 2 * buffer > 1 "Gridsize too small for given buffer"
+    rand_space = Array(collect(0:num_nodes-1))
+    # Filter out nodes in the margin
+    # NOTE Cool trick: n % d == x coord, n ÷ d == y coord
+    filter!(i -> (buffer <= (i%d)) || (buffer <= (i÷d)) || (i%d < d-buffer) || (i÷d < d-buffer), rand_space)
+    # Set first index to 1
+    rand_space .+ 1
+    pairs = make_user_pairs(squarenet, num_pairs, node_list=rand_space)
+    return pairs
+end
+
 
 """
 Generate a list of end-users for a TemporalGraph.

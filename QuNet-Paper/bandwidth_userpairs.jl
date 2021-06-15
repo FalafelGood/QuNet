@@ -12,10 +12,10 @@ using Parameters
 datafile = "data/bandwidth_userpairs"
 
 # Params
-num_trials = 100::Int64
-max_pairs = 10::Int64
+num_trials = 1000::Int64
+max_pairs = 50::Int64
 grid_size = 10::Int64
-time_depth = 5::Int64
+time_depth = 25::Int64
 asynchronus_weight = 100::Int64
 
 generate_new_data = true

@@ -511,7 +511,7 @@ number of end-users, we compare the ratio of the depths of the graphs
 function plot_bandwidth_ratio_with_userpairs(num_trials::Int64, max_pairs::Int64)
 
     grid_size = 10
-    time_depth = 50
+    time_depth = 25
     asynchronus_weight = 100
 
     # Generate ixi graph and extend it in time
