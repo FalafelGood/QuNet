@@ -11,10 +11,10 @@ using Parameters
 datafile = "data/gridsize"
 
 # Params
-num_trials = 100::Int64
-num_pairs = 1::Int64
+num_trials = 500::Int64
+num_pairs = 40::Int64
 min_size = 10::Int64
-max_size = 20::Int64
+max_size = 150::Int64
 # Increment constant
 inc = 5::Int64
 

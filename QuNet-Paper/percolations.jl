@@ -14,10 +14,10 @@ datafile = "data/percolations"
 # Params
 num_pairs = 1::Int64
 grid_size = 10::Int64
-perc_range = (0.0, 0.1, 0.7)::Tuple{Float64, Float64, Float64}
-num_trials = 100::Int64
+perc_range = (0.0, 0.01, 0.7)::Tuple{Float64, Float64, Float64}
+num_trials = 5000::Int64
 
-generate_new_data = false
+generate_new_data = true
 if generate_new_data == true
 
     net = GridNetwork(grid_size, grid_size)
