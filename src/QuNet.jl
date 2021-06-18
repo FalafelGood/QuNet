@@ -19,6 +19,7 @@ import SatelliteToolbox: expatmosphere
 abstract type QObject end
 abstract type QNode <: QObject end
 abstract type QChannel <: QObject end
+abstract type QNetwork <: QObject end
 
 TIME_STEP = 0.01
 

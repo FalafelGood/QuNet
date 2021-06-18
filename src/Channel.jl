@@ -1,102 +1,60 @@
 """
-    add(network::QNetwork, channel::QChannel)
-
-Add a channel to the network
+Define channel types for BasicChannel, FibreChannel, and AirChannel.
+Define methods for determining costs of latter two.
 """
-function add(network::QNetwork, channel::QChannel)
-    push!(network.channels, channel)
-end
-
-function update(channel::QChannel, old_time::Float64, new_time::Float64)
-end
-
 
 """
-    distance(src::QNode, dest::QNode)
+Default Channel type
+"""
+mutable struct BasicChannel <: QChannel
+    src::Int64
+    dst::Int64
+    costs::Costs
+    capacity::Int64
+    active::Bool
+    undirected::Bool
 
+    """
+    Initalise a Basic Channel with unit costs
+    """
+    function BasicChannel(src::Int64, dest::Int64)
+        newChannel = new(src, dest, Costs(1.0, 1.0), 1, true, true)
+        return newChannel
+    end
+
+    """
+    Initialise a BasicChannel with generic costs
+    """
+    function BasicChannel(src::Int64, dest::Int64, costs::Costs)
+        tmpchannel = new(src, dest, costs, 1, true, true)
+        return tmpchannel
+    end
+end
+
+"""
 Cartesian distance between two nodes
 """
-function distance(src::QNode, dest::QNode)
+function distance(src::QNode, dest::QNode)::Float64
     v = src.location
     w = dest.location
     return sqrt((v.x - w.x)^2 + (v.y - w.y)^2 + (v.z - w.z)^2)
 end
 
-
 """
-    mutable struct BasicChannel <: QChannel
-
-The default Channel type. Costs are assumed to be exponential with length
+Calculate costs for FibreChannel given length
 """
-mutable struct BasicChannel <: QChannel
-    name::String
-    costs::Dict
-    src::QNode
-    dest::QNode
-    length::Float64
-    active::Bool
-    directed::Bool
-
-    """
-    Initalise a Basic Channel with unit costs
-    """
-    function BasicChannel(src::QNode, dest::QNode, ;exp_cost::Bool=false)
-        tmpchannel = new("", unit_costvector(), src, dest, distance(src, dest), true, false)
-        if exp_cost == true
-            tmpchannel.costs = cost(tmpchannel)
-        end
-        return tmpchannel
-    end
-
-    function BasicChannel(name::String, src::QNode, dest::QNode, exp_cost::Bool=false)
-        tmpchannel = new(name, unit_costvector(), src, dest, distance(src, dest), true, false)
-        if exp_cost == true
-            tmpchannel.costs = cost(tmpchannel)
-        end
-        return tmpchannel
-    end
-
-    function BasicChannel(name::String, src::QNode, dest::QNode, edge_cost::Dict)
-        tmpchannel = new(name, edge_cost, src, dest, distance(src, dest), true, false)
-        return tmpchannel
-    end
-
-    #BasicChannel(src::QNode, dest::QNode) = new("", unit_costvector(), src, dest, distance(src, dest), true, false)
-    #BasicChannel(name::String, src::QNode, dest::QNode) = new(string(name), unit_costvector(), src, dest, distance(src, dest), true, false)
-end
-
-function cost(channel::BasicChannel)
-    d = channel.length
+function fibreCosts(length::Float64)::Costs
     β = 0.001
-    loss = P_to_dB(exp(-β * d))
-    Z = Z_to_dB((1 + exp(-β * d))/2)
-    costVector = Dict([("loss",loss), ("Z",Z)])
-    return costVector
+    # TODO: Go over these costs
+    dE = P_to_dB(exp(-β * length))
+    dF = Z_to_dB((1 + exp(-β * length))/2)
+    return Costs(dE, dF)
 end
 
-mutable struct AirChannel <: QChannel
-    name::String
-    costs::Dict
-    src::QNode
-    dest::QNode
-    length::Float64
-    active::Bool
-    directed::Bool
-
-    function AirChannel(src::QNode, dest::QNode)
-        tmpchannel = new("", unit_costvector(), src, dest, distance(src, dest), true, false)
-        tmpchannel.costs = cost(tmpchannel)
-        return tmpchannel
-    end
-
-    function AirChannel(name::String, src::QNode, dest::QNode)
-        tmpchannel = new(name, unit_costvector(), src, dest, distance(src, dest), true, false)
-        tmpchannel.costs = cost(tmpchannel)
-        return tmpchannel
-    end
-end
-
-function cost(channel::AirChannel)
+"""
+Calculate costs for AirChannel given length
+"""
+function airCosts(channel::AirChannel)::Costs
     """
     Line integral for effective density
 
@@ -105,35 +63,98 @@ function cost(channel::AirChannel)
     / 0
     """
 
-    v = channel.src.location
-    w = channel.dest.location
+    srcCoords = channel.src.location
+    destCoords = channel.dest.location
     L = channel.length
     # sin(theta)
-    st = abs(v.z - w.z)/L
+    sinT = abs(srcCoords.z - destCoords.z)/L
     # atmosphere function
     ρ = expatmosphere
-    f(x) = ρ(x*st)
+    f(x) = ρ(x*sinT)
     # Effective atmospheric depth
     d = quadgk(f, 0, L)[1]
 
+    # Constants
     β = 10e-5
     d₀ = 10e7
 
-    # Calculate the decibelic forms of loss and Z
-    P = exp(-β*d)*(d₀)^2/(d + d₀)^2
-    Z = (1+exp(-β*d))/2
+    E = exp(-β*d)*(d₀)^2/(d + d₀)^2
+    F = (1+exp(-β*d))/2
 
-    # Put them in a cost vector and return
-    costVector = Dict([("loss",P_to_dB(P)), ("Z",Z_to_dB(Z))])
-    return costVector
+    # Calculate decibelic forms of efficiency and fidelity
+    dE = E_to_dE(E)
+    dF = F_to_dF(F)
+    return Costs(dE, dF)
 end
 
+"""
+Fibre optic channel, where the cost is determined by exponential loss in length
+"""
+mutable struct FibreChannel <: QChannel
+    src::Int64
+    dst::Int64
+    length::Float64
+    costs::Costs
+    capacity::Int64
+    active::Bool
+    undirected::Bool
 
+    """
+    Initialise a FibreChannel with specified length
+    """
+    function FibreChannel(src::Int64, dest::Int64, length::Float64)
+        costs = fibreCosts(length)
+        newChannel = new(src, dest, length, costs, 1, true, true)
+        return tmpchannel
+    end
+
+    """
+    Initialise FibreChannel infering length from node positions
+    """
+    function FibreChannel(src::Int64, dest::Int64)
+        length = distance(src, dst)
+        costs = fibreCosts(length)
+        newChannel = new(src, dest, length, costs, 1, true, true)
+        return newChannel
+    end
+end
+
+mutable struct AirChannel <: QChannel
+    src::Int64
+    dst::Int64
+    length::Float64
+    costs::Costs
+    capacity::Int64
+    active::Bool
+    undirected::Bool
+
+    """
+    Initialise a FibreChannel with specified length
+    """
+    function AirChannel(src::Int64, dest::Int64, length::Float64)
+        costs = airCosts(length)
+        newChannel = new(src, dest, length, costs, 1, true, true)
+        return tmpchannel
+    end
+
+    function AirChannel(src::QNode, dest::QNode)
+        length = distance(src, dst)
+        costs = airCosts(length)
+        newChannel = new(src, dest, length, costs, 1, true, true)
+        return newChannel
+    end
+end
+
+# TODO:
 function update(channel::AirChannel, old_time::Float64, new_time::Float64)
     channel.length = distance(channel.src, channel.dest)
     channel.costs = cost(channel)
 end
 
-#     BasicMemory(node::QNode) = new(node, unit_costvector())
-#     BasicMemory(node::QNode, costs::Dict) = new(node, costs)
-# end
+
+"""
+Add a channel to the network
+"""
+function add(network::QNetwork, channel::QChannel)
+    push!(network.channels, channel)
+end

@@ -7,33 +7,33 @@ and other miscelanious utilities
 """
 Convert from decibelic loss to metric form
 """
-function dB_to_P(dB::Float64)::Float64
-    P = 10.0^(-dB/10)
-    return P
+function dE_to_E(dE::Float64)::Float64
+    E = 10.0^(-dE/10)
+    return E
 end
 
 """
 Convert from metric form to decibelic loss
 """
-function P_to_dB(P::Float64)::Float64
-    dB = -10.0*log(10,P)
+function E_to_dE(E::Float64)::Float64
+    dE = -10.0*log(10,E)
     return dB
 end
 
 """
 Convert from dephasing probability to decibelic form
 """
-function Z_to_dB(Z::Float64)::Float64
-    dB = -10.0*log(10, 2*Z-1)
-    return dB
+function F_to_dF(F::Float64)::Float64
+    dF = -10.0*log(10, 2*F-1)
+    return dF
 end
 
 """
 Convert from decibelic dephasing to metric form
 """
-function dB_to_Z(dB::Float64)::Float64
-    Z = (10^(-dB/10) + 1)/2
-    return Z
+function dF_to_F(dF::Float64)::Float64
+    F = (10^(-dF/10) + 1)/2
+    return F
 end
 
 

@@ -1,27 +1,28 @@
 """
-The QNetwork type is a mutable structure that contains QNodes, QChannels, and
-a dictionary of costs to weighted LightGraphs.
+Define main structures for Basic and Dynamic QNetworks
 """
 
-# Test: Hello world!
+"""
 
-mutable struct QNetwork <: QObject
-    name::String
+"""
+mutable struct BasicNetwork <: QNetwork
     nodes::Array{QNode}
     channels::Array{QChannel}
-    # Dictionary between costs and corresponding LightGraphs weighted graphs.
-    graph::Dict
-    time::Float64
 
-    # QNetwork() = new("QuNet", [], [], Dict())
-    function QNetwork()
-        network = new("QuNet", [], [], Dict(), 0.0)
-        for cost_key in keys(zero_costvector())
-            network.graph[cost_key] = SimpleWeightedDiGraph()
-        end
-        return network
+    function BasicNetwork()
+        newNet = new([], [])
+        return newNet
     end
+
+    function BasicNetwork(graph)
+        # TODO: Pass in lightGraphs structure. Make sense of this...
 end
+
+# TODO: This makes sense right?
+mutable struct DynamicNetwork <: QNetwork
+    nodes::Array{QNode}
+    channels::Array{QChannel}
+    time::Float64
 
 function QNetwork(graph::AbstractGraph; edge_costs=unit_costvector())
     network = QNetwork()
@@ -47,13 +48,6 @@ function print(network::QNetwork)
     println("nodes: ", length(network.nodes))
     println("channels: ", length(network.channels))
 end
-
-# NOTE Outdated refresh_graph! below.
-# We'll no longer use TemporalGraph structure to update graphs since it has
-# A lot more bells and whistles now. Good practice to have something custom built.
-# function refresh_graph!(network::QNetwork)
-#    network.graph = TemporalGraph(network, 1).graph
-# end
 
 """
     refresh_graph!(network::QNetwork)
