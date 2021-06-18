@@ -8,46 +8,146 @@ Define main structures for Basic and Dynamic QNetworks
 mutable struct BasicNetwork <: QNetwork
     nodes::Array{QNode}
     channels::Array{QChannel}
+    # Bit array representing lower diagonal adjacency matrix
+    """
+    4 vertex example:
+    (src, dst) == (row, column)
+    src < dst
+
+         1 2 3 4
+    1   |X 1 2 4|
+    2   |X X 3 5|
+    3   |X X X 6|
+    4   |X X X X|
+    """
+    diagAdj::BitArray{1}
+    time::Float64
 
     function BasicNetwork()
-        newNet = new([], [])
+        newNet = new([], [], BitArray(undef, 0), 0)
         return newNet
     end
 
-    function BasicNetwork(graph)
-        # TODO: Pass in lightGraphs structure. Make sense of this...
-end
-
-# TODO: This makes sense right?
-mutable struct DynamicNetwork <: QNetwork
-    nodes::Array{QNode}
-    channels::Array{QChannel}
-    time::Float64
-
-function QNetwork(graph::AbstractGraph; edge_costs=unit_costvector())
-    network = QNetwork()
-
-    vertexCount = 0
-    for vertex in vertices(graph)
-        vertexCount += 1
-        add(network, BasicNode(string(vertexCount)))
+    function BasicNetwork(numNodes::Int64)
+        newNodes::Array{QNodes} = []
+        for id in 1:numNodes
+            node = BasicNode(id)
+            push!(newNodes, node)
+        end
+        newNet = new(newNodes, [], BitArray(undef, numNodes), 0)
+        return newNet
     end
+end
 
-    edgeCount = 0
-    for edge in edges(graph)
-        edgeCount += 1
-        add(network, BasicChannel(string(edgeCount), network.nodes[edge.src], network.nodes[edge.dst],
-        edge_costs))
+"""
+Add one or more nodes to the network
+"""
+function addNode(net::QNetwork, numNodes::Int64)
+    # Make and add new nodes to net.list
+    curNum = length(net.nodes)
+    newNodes::Array{QNodes} = []
+    for id in curNum : curNum + numNodes
+        node = BasicNode(id)
+        push!(newNodes, node)
     end
-
-    return network
+    net.nodes = vcat(net.nodes, newNodes)
+    # Update adjacency matrix
+    newBits = BitArray(undef, numNodes)
+    net.diagAdj = vcat(net.diagAdj, newBits)
 end
 
-function print(network::QNetwork)
-    println("name: ", network.name)
-    println("nodes: ", length(network.nodes))
-    println("channels: ", length(network.channels))
+"""
+Get the index of diagAdj corresponding to a channel between src and dst.
+Throws an error if either src or dst are larger than number of nodes in network
+"""
+function diagIdx(net::QNetwork, src::Int64, dst::Int64)::Int64
+    if max(src, dst) > length(net.nodes)
+        @assert false "Node selection is out of bounds"
+    else if src == dst
+        return false
+    else if src > dst
+        tmp = src; src = dst; dst = tmp
+    end
+    idx = 1/2 * (dst - 1) * dst - (dst-src-1)
+    return idx
 end
+
+"""
+Is there a channel between src and dst?
+Throws an error if either src or dst are larger than number of nodes in network
+"""
+function hasChannel(net::QNetwork, src::Int64, dst::Int64)::Bool
+    idx = diagIdx(net, src, dst)
+    return net.diagAdj[idx]
+end
+
+"""
+Get the index of a channel between src and dst in the net.channels array.
+If no channel exists between src and dst, returns nothing
+"""
+function channelIdx(net::QNetwork, src::Int64, dst::Int64)
+    # The index of diagAdj would be the same as channelIdx if it were a clique
+    idx = diagIdx(net, src, dst)
+    # If no channel exists, return nothing
+    if net.diagAdj[idx] == false
+        return nothing
+    end
+    truIdx = sum[net.diagAdj[1:idxClique]]
+    return idx
+end
+
+"""
+Fetch the channel between src and dst
+If no such channel exists, return nothing
+"""
+function getChannel(net::QNetwork, src::Int64, dst::Int64)
+    idx = channelIdx(net, src, dst)
+    if idx == nothing
+        return nothing
+    end
+    return net.channels[idx]
+end
+
+function addChannel(net::QNetwork, src::Int64, dst::Int64)
+    # TODO
+    # If channel already exists, return nothing
+    idx = diagIdx(net, src, dst)
+    if net.diagAdj[idx] == true
+        return nothing
+    end
+    newChannel = BasicChannel(src, dst)
+    # The index to insert in net.channels: The +1 sum of all previous entries
+    # Example: b = [0, 1, 1, {0}, 1, 0, 1], 4th entry selected to add
+    # This will be inserted into the third index of net.channels
+    truIdx = sum(net.diagAdj[1:idxClique]) + 1
+    insert!(net.channels, truIdx, newChannel)
+end
+
+# TODO: IO with other graph frameworks
+# function QNetwork(graph::AbstractGraph; edge_costs=unit_costvector())
+#     network = QNetwork()
+#
+#     vertexCount = 0
+#     for vertex in vertices(graph)
+#         vertexCount += 1
+#         add(network, BasicNode(string(vertexCount)))
+#     end
+#
+#     edgeCount = 0
+#     for edge in edges(graph)
+#         edgeCount += 1
+#         add(network, BasicChannel(string(edgeCount), network.nodes[edge.src], network.nodes[edge.dst],
+#         edge_costs))
+#     end
+#
+#     return network
+# end
+
+# function print(network::QNetwork)
+#     println("name: ", network.name)
+#     println("nodes: ", length(network.nodes))
+#     println("channels: ", length(network.channels))
+# end
 
 """
     refresh_graph!(network::QNetwork)
@@ -155,7 +255,6 @@ function getnode(network::QNetwork, name::String)
         end
     end
 end
-
 
 function getchannel(network::QNetwork, src::Union{Int64, String},
     dst::Union{Int64, String})

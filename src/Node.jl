@@ -1,7 +1,30 @@
 """
+The default QNode object. Nothing special, but nothing unspecial either ;-)"
+"""
+mutable struct BasicNode <: QNode
+    # Basic parameters
+    id::Int64
+    costs::Dict
+    active::Bool
+    has_memory::Bool
+    # Timestep for temporal metagraphs
+    time::Int64
+
+    function BasicNode(id::Int64)
+        newNode = new(id, Costs(0.0, 0.0), true, false, 0)
+        return newNode
+    end
+
+    function BasicNode(id::Int64, costs::Costs)
+        newNode = new(id, costs, true, false, 0)
+        return newNode
+    end
+end
+
+"""
 Coordinates of the QNode object in up to three spatial dimensions
 """
-mutable struct Coords
+mutable struct CartCoords
     x::Float64
     y::Float64
     z::Float64
@@ -12,137 +35,63 @@ mutable struct Coords
 end
 
 """
-The default QNode object. Nothing special, but nothing unspecial either ;-)"
+Similar to BasicNode, but with an extra parameter for cartesian spatial coordinates
+and a continuous time parameter as opposed to discrete time
 """
-mutable struct BasicNode <: QNode
-    name::String
-    costs::Dict
-    has_memory::Bool
-    memory_costs::Dict
+mutable struct CartNode <: QNode
     id::Int64
-    time::Int64
+    costs::Dict
     active::Bool
-    location::Coords
+    has_memory::Bool
+    coords::CartCoords
+    time::Float64
 
-    BasicNode() = new("", zero_costvector(), true, zero_costvector(), 0, 0, true, Coords())
-    BasicNode(name) = new(string(name), zero_costvector(), true, zero_costvector(), 0, 0, true, Coords())
-end
-
-"""
-Add a QNode object to the network.
-
-Example:
-
-```
-using QuNet
-Q = QNetwork()
-A = BasicNode("A")
-add(Q, A)
-```
-"""
-function add(network::QNetwork, node::QNode)
-    push!(network.nodes, node)
-    node.id = length(network.nodes)
-end
-
-"""
-Remove a Qnode object from the network.
-
-The convention for node removal in QuNet echos that of LightGraphs.jl.
-Suppose a given network has N nodes, and we want to remove the node with the
-id v:
-
-1. Check if v < N . If false, simply pop the node from QNetwork.nodes
-2. Else, swap the nodes v and N, then pop from QNetworks.nodes
-"""
-function remove(network::QNetwork, node::QNode)
-    node_id = node.id
-    if node_id != length(network.nodes)
-        # Swap the node to be removed with the last node
-        # (Same removal strategy as SimpleGraphs)
-        tmp_node = deepcopy(node)
-        N = last(network.nodes)
-        node = N
-        node.id = node_id
-        N = tmp_node
+    function CartNode(id::Int64, coords::CartCoords)
+        newNode = new(id, Costs(0.0, 0.0), true, false, coords, 0.0)
+        return newNode
     end
-    pop!(network.nodes)
+
+    function CartNode(id::Int64, costs::Costs, coords::CartCoords)
+        newNode = new(id, costs, true, false, coords, 0.0)
+        return newNode
+    end
 end
 
 """
-```function update(node::QNode)```
-
-Does nothing
+Cartesian Velocity in up to 3 spatial coordinates
 """
-function update(node::QNode)
-end
-
-function update(node::QNode, old_time::Float64, new_time::Float64)
-end
-
-
-# Identical structure to Coords, but using a different name for distrinction
-"""
-```
-mutable struct Velocity
+mutable struct CartVelocity
     x::Float64
     y::Float64
     z::Float64
 
-    Velocity() = new(0,0,0)
-    Velocity(x,y) = new(x,y,0)
-    Velocity(x,y,z) = new(x,y,z)
-```
-
-Type for Cartesian Velocity in up to 3 spatial coordinates
-"""
-mutable struct Velocity
-    x::Float64
-    y::Float64
-    z::Float64
-
-    Velocity() = new(0,0,0)
-    Velocity(x,y) = new(x,y,0)
-    Velocity(x,y,z) = new(x,y,z)
+    CartVelocity() = new(0,0,0)
+    CartVelocity(x,y) = new(x,y,0)
+    CartVelocity(x,y,z) = new(x,y,z)
 end
 
 """
-```
-mutable struct PlanSatNode <: QNode
-    name::String
-    costs::Dict
-    memory::Dict
+Satellite Node in Cartesian Coordinates
+"""
+mutable struct CartSatNode <: QNode
     id::Int64
-    time::Int64
+    costs::Costs
     active::Bool
-    location::Coords
-    velocity::Velocity
-```
-
-The `PlanSatNode` type has all the functionality of a `BasicNode` but can move
-according to a fixed velocity.
-"""
-mutable struct PlanSatNode <: QNode
-    name::String
-    costs::Dict
     has_memory::Bool
-    memory_costs::Dict
-    id::Int64
-    time::Int64
-    active::Bool
-    location::Coords
-    velocity::Velocity
-    PlanSatNode() = new("", zero_costvector(), true, unit_costvector(),
-                    0, 0, true, Coords(), Velocity())
-    PlanSatNode(name) = new(string(name), zero_costvector(), true, zero_costvector(),
-                        0, 0, true, Coords(), Velocity())
+    coords::CartCoords
+    velocity::CartVelocity
+    time::Float64
+
+    function CartSatNode(id::Int64, coords::CartCoords, velocity::CartVelocity)
+        newNode = new(id, Costs(0.0, 0.0), true, false, coords, velocity, 0.0)
+        return newNode
+    end
 end
 
-"""
-```function update(sat::PlanSatNode)```
 
+"""
 Update the position of a planar satellite node by incrementing its current
-location with the distance covered by its velocity in `TIME_STEP` seconds.
+location with the distance covered by its velocity in "TIME_STEP" seconds.
 """
 function update(sat::PlanSatNode, old_time::Float64, new_time::Float64)
     # Calculate new position from velocity
@@ -151,3 +100,58 @@ function update(sat::PlanSatNode, old_time::Float64, new_time::Float64)
     sat.location.z += sat.velocity.z * (new_time - old_time)
     return
 end
+
+# """
+# Add a QNode object to the network.
+#
+# Example:
+#
+# ```
+# using QuNet
+# Q = QNetwork()
+# A = BasicNode("A")
+# add(Q, A)
+# ```
+# """
+# function add(network::QNetwork, node::QNode)
+#     push!(network.nodes, node)
+#     node.id = length(network.nodes)
+# end
+#
+# """
+# Remove a Qnode object from the network.
+#
+# The convention for node removal in QuNet echos that of LightGraphs.jl.
+# Suppose a given network has N nodes, and we want to remove the node with the
+# id v:
+#
+# 1. Check if v < N . If false, simply pop the node from QNetwork.nodes
+# 2. Else, swap the nodes v and N, then pop from QNetworks.nodes
+# """
+# function remove(network::QNetwork, node::QNode)
+#     node_id = node.id
+#     if node_id != length(network.nodes)
+#         # Swap the node to be removed with the last node
+#         # (Same removal strategy as SimpleGraphs)
+#         tmp_node = deepcopy(node)
+#         N = last(network.nodes)
+#         node = N
+#         node.id = node_id
+#         N = tmp_node
+#     end
+#     pop!(network.nodes)
+# end
+#
+# """
+# ```function update(node::QNode)```
+#
+# Does nothing
+# """
+# function update(node::QNode)
+# end
+#
+# function update(node::QNode, old_time::Float64, new_time::Float64)
+# end
+#
+#
+# # Identical structure to Coords, but using a different name for distrinction

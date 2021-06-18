@@ -12,13 +12,12 @@ mutable struct BasicChannel <: QChannel
     costs::Costs
     capacity::Int64
     active::Bool
-    undirected::Bool
 
     """
     Initalise a Basic Channel with unit costs
     """
     function BasicChannel(src::Int64, dest::Int64)
-        newChannel = new(src, dest, Costs(1.0, 1.0), 1, true, true)
+        newChannel = new(src, dest, Costs(1.0, 1.0), 1, true)
         return newChannel
     end
 
@@ -26,7 +25,7 @@ mutable struct BasicChannel <: QChannel
     Initialise a BasicChannel with generic costs
     """
     function BasicChannel(src::Int64, dest::Int64, costs::Costs)
-        tmpchannel = new(src, dest, costs, 1, true, true)
+        tmpchannel = new(src, dest, costs, 1, true)
         return tmpchannel
     end
 end
@@ -97,14 +96,13 @@ mutable struct FibreChannel <: QChannel
     costs::Costs
     capacity::Int64
     active::Bool
-    undirected::Bool
 
     """
     Initialise a FibreChannel with specified length
     """
     function FibreChannel(src::Int64, dest::Int64, length::Float64)
         costs = fibreCosts(length)
-        newChannel = new(src, dest, length, costs, 1, true, true)
+        newChannel = new(src, dest, length, costs, 1, true)
         return tmpchannel
     end
 
@@ -114,7 +112,7 @@ mutable struct FibreChannel <: QChannel
     function FibreChannel(src::Int64, dest::Int64)
         length = distance(src, dst)
         costs = fibreCosts(length)
-        newChannel = new(src, dest, length, costs, 1, true, true)
+        newChannel = new(src, dest, length, costs, 1, true)
         return newChannel
     end
 end
@@ -126,21 +124,20 @@ mutable struct AirChannel <: QChannel
     costs::Costs
     capacity::Int64
     active::Bool
-    undirected::Bool
 
     """
     Initialise a FibreChannel with specified length
     """
     function AirChannel(src::Int64, dest::Int64, length::Float64)
         costs = airCosts(length)
-        newChannel = new(src, dest, length, costs, 1, true, true)
+        newChannel = new(src, dest, length, costs, 1, true)
         return tmpchannel
     end
 
     function AirChannel(src::QNode, dest::QNode)
         length = distance(src, dst)
         costs = airCosts(length)
-        newChannel = new(src, dest, length, costs, 1, true, true)
+        newChannel = new(src, dest, length, costs, 1, true)
         return newChannel
     end
 end
