@@ -2,6 +2,9 @@
 The QNetwork type is a mutable structure that contains QNodes, QChannels, and
 a dictionary of costs to weighted LightGraphs.
 """
+
+# Test: Hello world!
+
 mutable struct QNetwork <: QObject
     name::String
     nodes::Array{QNode}
