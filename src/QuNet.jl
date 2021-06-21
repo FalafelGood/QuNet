@@ -7,6 +7,7 @@ using LightGraphs, SimpleWeightedGraphs, GraphPlot, MetaGraphs
 using LinearAlgebra, StatsBase, Statistics
 using Documenter, Colors, Plots, LaTeXStrings
 
+# Satellite stuff
 # using SatelliteToolbox
 # using QuadGK
 
@@ -27,6 +28,7 @@ TIME_STEP = 0.01
 # Don't change them willy-nilly unless you like segfaults and screaming
 include("Network.jl")
 include("TemporalGraphs.jl")
+include("Costs.jl")
 include("CostVector.jl")
 include("Node.jl")
 include("Channel.jl")
@@ -39,38 +41,40 @@ include("GraphInterface.jl")
 
 export
 # Abstract Classes
-QObject, QNode, QChannel,
+QObject, QNode, QChannel, QNetwork,
 
-# Benchmarking.jl
-percolation_bench, dict_average, dict_err, make_user_pairs, net_performance,
+# # Benchmarking.jl
+# percolation_bench, dict_average, dict_err, make_user_pairs, net_performance,
 
 # Channel.jl
 BasicChannel, AirChannel,
 
-# CostVector.jl
-zero_costvector, unit_costvector, convert_costs, get_pathcv,
+# Costs.jl
+Costs,
+
+# # CostVector.jl
+# zero_costvector, unit_costvector, convert_costs, get_pathcv,
 
 # Network.jl
-QNetwork, GridNetwork, add, update,
-refresh_graph!,
+BasicNetwork, addNode, hasChannel, channelIdx, getChannel, addChannel,
+GridNetwork, add, update, refresh_graph!,
 
 # Node.jl
-Coords, BasicNode, Velocity, PlanSatNode,
+Coords, BasicNode, Velocity, PlanSatNode
 
 # Percolation.jl
 
-# Plot.jl
-gplot,
+# # Plot.jl
+# gplot,
 
-# GraphInterface.jl
-hard_rem_edge!,
+# # GraphInterface.jl
+# hard_rem_edge!,
 
-# Routing.jl
-shortest_path,
+# # Routing.jl
+# shortest_path,
 
 # TemporalGraphs.jl
 
-# Utilities.jl
-dB_to_P, P_to_dB, Z_to_dB, dB_to_Z, purify
-
+# # Utilities.jl
+# dB_to_P, P_to_dB, Z_to_dB, dB_to_Z, purify
 end

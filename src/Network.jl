@@ -29,7 +29,7 @@ mutable struct BasicNetwork <: QNetwork
     end
 
     function BasicNetwork(numNodes::Int64)
-        newNodes::Array{QNodes} = []
+        newNodes::Array{QNode} = []
         for id in 1:numNodes
             node = BasicNode(id)
             push!(newNodes, node)
@@ -45,8 +45,8 @@ Add one or more nodes to the network
 function addNode(net::QNetwork, numNodes::Int64)
     # Make and add new nodes to net.list
     curNum = length(net.nodes)
-    newNodes::Array{QNodes} = []
-    for id in curNum : curNum + numNodes
+    newNodes::Array{QNode} = []
+    for id in curNum + 1 : curNum + numNodes
         node = BasicNode(id)
         push!(newNodes, node)
     end
@@ -63,9 +63,9 @@ Throws an error if either src or dst are larger than number of nodes in network
 function diagIdx(net::QNetwork, src::Int64, dst::Int64)::Int64
     if max(src, dst) > length(net.nodes)
         @assert false "Node selection is out of bounds"
-    else if src == dst
+    elseif src == dst
         return false
-    else if src > dst
+    elseif src > dst
         tmp = src; src = dst; dst = tmp
     end
     idx = 1/2 * (dst - 1) * dst - (dst-src-1)
@@ -124,30 +124,6 @@ function addChannel(net::QNetwork, src::Int64, dst::Int64)
 end
 
 # TODO: IO with other graph frameworks
-# function QNetwork(graph::AbstractGraph; edge_costs=unit_costvector())
-#     network = QNetwork()
-#
-#     vertexCount = 0
-#     for vertex in vertices(graph)
-#         vertexCount += 1
-#         add(network, BasicNode(string(vertexCount)))
-#     end
-#
-#     edgeCount = 0
-#     for edge in edges(graph)
-#         edgeCount += 1
-#         add(network, BasicChannel(string(edgeCount), network.nodes[edge.src], network.nodes[edge.dst],
-#         edge_costs))
-#     end
-#
-#     return network
-# end
-
-# function print(network::QNetwork)
-#     println("name: ", network.name)
-#     println("nodes: ", length(network.nodes))
-#     println("channels: ", length(network.channels))
-# end
 
 """
     refresh_graph!(network::QNetwork)

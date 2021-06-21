@@ -51,42 +51,6 @@ function fibreCosts(length::Float64)::Costs
 end
 
 """
-Calculate costs for AirChannel given length
-"""
-function airCosts(channel::AirChannel)::Costs
-    """
-    Line integral for effective density
-
-    / L'
-    |     rho(x * sin(theta)) dx
-    / 0
-    """
-
-    srcCoords = channel.src.location
-    destCoords = channel.dest.location
-    L = channel.length
-    # sin(theta)
-    sinT = abs(srcCoords.z - destCoords.z)/L
-    # atmosphere function
-    ρ = expatmosphere
-    f(x) = ρ(x*sinT)
-    # Effective atmospheric depth
-    d = quadgk(f, 0, L)[1]
-
-    # Constants
-    β = 10e-5
-    d₀ = 10e7
-
-    E = exp(-β*d)*(d₀)^2/(d + d₀)^2
-    F = (1+exp(-β*d))/2
-
-    # Calculate decibelic forms of efficiency and fidelity
-    dE = E_to_dE(E)
-    dF = F_to_dF(F)
-    return Costs(dE, dF)
-end
-
-"""
 Fibre optic channel, where the cost is determined by exponential loss in length
 """
 mutable struct FibreChannel <: QChannel
@@ -140,6 +104,42 @@ mutable struct AirChannel <: QChannel
         newChannel = new(src, dest, length, costs, 1, true)
         return newChannel
     end
+end
+
+"""
+Calculate costs for AirChannel given length
+"""
+function airCosts(channel::AirChannel)::Costs
+    """
+    Line integral for effective density
+
+    / L'
+    |     rho(x * sin(theta)) dx
+    / 0
+    """
+
+    srcCoords = channel.src.location
+    destCoords = channel.dest.location
+    L = channel.length
+    # sin(theta)
+    sinT = abs(srcCoords.z - destCoords.z)/L
+    # atmosphere function
+    ρ = expatmosphere
+    f(x) = ρ(x*sinT)
+    # Effective atmospheric depth
+    d = quadgk(f, 0, L)[1]
+
+    # Constants
+    β = 10e-5
+    d₀ = 10e7
+
+    E = exp(-β*d)*(d₀)^2/(d + d₀)^2
+    F = (1+exp(-β*d))/2
+
+    # Calculate decibelic forms of efficiency and fidelity
+    dE = E_to_dE(E)
+    dF = F_to_dF(F)
+    return Costs(dE, dF)
 end
 
 # TODO:
