@@ -10,6 +10,7 @@ mutable struct BasicNetwork <: QNetwork
     channels::Array{QChannel}
     # Bit array representing lower diagonal adjacency matrix
     """
+    Todo: Get rid of this implementation! Bad.
     4 vertex example:
     (src, dst) == (row, column)
     src < dst
