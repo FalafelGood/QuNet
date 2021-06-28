@@ -3,14 +3,15 @@ Define main structures for Basic and Dynamic QNetworks
 """
 
 """
-
+Basic QNetwork structure. Although mutable for convenience, it should
+not be regarded as such. Large manipulations are done by passing QuNet
+into more optimised packages
 """
 mutable struct BasicNetwork <: QNetwork
     nodes::Array{QNode}
     channels::Array{QChannel}
-    # Bit array representing lower diagonal adjacency matrix
+    # Bit array representing upper diagonal adjacency matrix
     """
-    Todo: Get rid of this implementation! Bad.
     4 vertex example:
     (src, dst) == (row, column)
     src < dst
@@ -21,7 +22,7 @@ mutable struct BasicNetwork <: QNetwork
     3   |X X X 6|
     4   |X X X X|
     """
-    diagAdj::BitArray{1}
+    adjmx::AbstractMatrix
     time::Float64
 
     function BasicNetwork()
