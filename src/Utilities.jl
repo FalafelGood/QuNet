@@ -3,40 +3,6 @@ Utilities.jl contains conversion methods, purification schemes,
 and other miscelanious utilities
 """
 
-
-"""
-Convert from decibelic loss to metric form
-"""
-function dE_to_E(dE::Float64)::Float64
-    E = 10.0^(-dE/10)
-    return E
-end
-
-"""
-Convert from metric form to decibelic loss
-"""
-function E_to_dE(E::Float64)::Float64
-    dE = -10.0*log(10,E)
-    return dB
-end
-
-"""
-Convert from dephasing probability to decibelic form
-"""
-function F_to_dF(F::Float64)::Float64
-    dF = -10.0*log(10, 2*F-1)
-    return dF
-end
-
-"""
-Convert from decibelic dephasing to metric form
-"""
-function dF_to_F(dF::Float64)::Float64
-    F = (10^(-dF/10) + 1)/2
-    return F
-end
-
-
 function purify_PBS(F1::Float64,F2::Float64)::(Float64,Float64)
     F = F1*F1 / (F1*F2 + (1-F1)(1-F2))
     P = 1

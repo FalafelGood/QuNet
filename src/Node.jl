@@ -25,13 +25,13 @@ end
 Coordinates of the QNode object in up to three spatial dimensions
 """
 mutable struct CartCoords
-    x::Float64
-    y::Float64
-    z::Float64
+    x::AbstractFloat
+    y::AbstractFloat
+    z::AbstractFloat
 
-    Coords() = new(0,0,0)
-    Coords(x,y) = new(x,y,0)
-    Coords(x,y,z) = new(x,y,z)
+    CartCoords() = new(0.0,0.0,0.0)
+    CartCoords(x,y) = new(x,y,0.0)
+    CartCoords(x,y,z) = new(x,y,z)
 end
 
 """
@@ -40,7 +40,7 @@ and a continuous time parameter as opposed to discrete time
 """
 mutable struct CartNode <: QNode
     id::Int64
-    costs::Dict
+    costs::Costs
     active::Bool
     has_memory::Bool
     coords::CartCoords
@@ -61,12 +61,12 @@ end
 Cartesian Velocity in up to 3 spatial coordinates
 """
 mutable struct CartVelocity
-    x::Float64
-    y::Float64
-    z::Float64
+    x::AbstractFloat
+    y::AbstractFloat
+    z::AbstractFloat
 
-    CartVelocity() = new(0,0,0)
-    CartVelocity(x,y) = new(x,y,0)
+    CartVelocity() = new(0.0,0.0,0.0)
+    CartVelocity(x,y) = new(x,y,0.0)
     CartVelocity(x,y,z) = new(x,y,z)
 end
 
