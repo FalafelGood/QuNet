@@ -12,12 +12,13 @@ mutable struct BasicChannel <: QChannel
     costs::Costs
     capacity::Int64
     active::Bool
+    directed::Bool
 
     """
     Initalise a Basic Channel with unit costs
     """
     function BasicChannel(src::Int, dst::Int)
-        newChannel = new(src, dst, Costs(0.0, 0.0), 1, true)
+        newChannel = new(src, dst, Costs(0.0, 0.0), 1, true, false)
         return newChannel
     end
 
@@ -25,7 +26,7 @@ mutable struct BasicChannel <: QChannel
     Initialise a BasicChannel with generic costs
     """
     function BasicChannel(src::Int, dst::Int, costs::Costs)
-        tmpchannel = new(src, dst, costs, 1, true)
+        tmpchannel = new(src, dst, costs, 1, true, false)
         return tmpchannel
     end
 end
@@ -61,13 +62,14 @@ mutable struct FibreChannel <: QChannel
     costs::Costs
     capacity::Int64
     active::Bool
+    directed::Bool
 
     """
     Initialise a FibreChannel with specified length
     """
     function FibreChannel(src::Int, dst::Int, length::AbstractFloat)
         costs = fibreCosts(length)
-        newChannel = new(src, dst, length, costs, 1, true)
+        newChannel = new(src, dst, length, costs, 1, true, false)
         return newChannel
     end
 
@@ -77,7 +79,7 @@ mutable struct FibreChannel <: QChannel
     function FibreChannel(src::QNode, dst::QNode)
         length = cartDistance(src, dst)
         costs = fibreCosts(length)
-        newChannel = new(src.id, dst.id, length, costs, 1, true)
+        newChannel = new(src.id, dst.id, length, costs, 1, true, false)
         return newChannel
     end
 end
@@ -89,6 +91,7 @@ mutable struct AirChannel <: QChannel
     costs::Costs
     capacity::Int64
     active::Bool
+    directed::Bool
 
     """
     Initialise an AirChannel from QNodes
@@ -96,7 +99,7 @@ mutable struct AirChannel <: QChannel
     function AirChannel(src::QNode, dst::QNode)
         length = cartDistance(src, dst)
         costs = QuNet.airCosts(src, dst)
-        newChannel = new(src.id, dst.id, length, costs, 1, true)
+        newChannel = new(src.id, dst.id, length, costs, 1, true, false)
         return newChannel
     end
 end

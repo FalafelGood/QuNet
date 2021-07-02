@@ -5,7 +5,7 @@ Define structure for Node and channel costs
 """
 Cost object for QNodes and QChannels
 """
-mutable struct Costs
+@def_structequal mutable struct Costs
     dE::Float64
     dF::Float64
 

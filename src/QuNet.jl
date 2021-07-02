@@ -6,6 +6,7 @@ module QuNet
 using LightGraphs, SimpleWeightedGraphs, GraphPlot, MetaGraphs
 using LinearAlgebra, StatsBase, Statistics
 using Documenter, Colors, Plots, LaTeXStrings
+using StructEquality
 
 # Satellite stuff
 # using SatelliteToolbox

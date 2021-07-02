@@ -107,6 +107,7 @@ using StructEquality
     addChannel!(net, edgeList)
     @test( length(net.channels) == 2 && net.numChannels == 2)
     @test( 2 in net.adjList[3] && 3 in net.adjList[2])
+    @test all(channel.directed == false for channel in net.channels)
 
     # Test addChannel! for list of channels
     net = BasicNetwork(3)
@@ -114,6 +115,7 @@ using StructEquality
     chan2 = BasicChannel(2,3)
     addChannel!(net, [chan1, chan2])
     @test( length(net.channels) == 2 && net.numChannels == 2)
+    @test all(channel.directed == false for channel in net.channels)
 
     # Test addChannel for list of edges and costs
     net = BasicNetwork(3)
@@ -121,6 +123,7 @@ using StructEquality
     costList = [Costs(1.0, 2.0), Costs(2.0, 3.0)]
     addChannel!(net, edgeList, costList)
     @test( net.channels[1] == BasicChannel(1, 2, Costs(1.0, 2.0)))
+    @test all(channel.directed == false for channel in net.channels)
 end
 
     # # Test: Channels are correctly added
