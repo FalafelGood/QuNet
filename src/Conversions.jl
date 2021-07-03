@@ -60,7 +60,7 @@ function toLightGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
     function NoCostNode(mdg, qnode)::Nothing
         setVertexAttrs(mdg, qnode, qnode.id)
         # Set node cost attribute to false
-        set_prop!(mdg, qnode.id, :nc, false)
+        set_prop!(mdg, qnode.id, :hasCost, false)
         return
     end
 
@@ -73,7 +73,7 @@ function toLightGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
     edge to the sink, an outgoing edge from the spout -- both with the same
     costs.
 
-    A node that passes through this method is given the attribute nc for node
+    A node that passes through this method is given the attribute hasCost for node
     cost, which is true if it has a cost and false otherwise. A node is a sink
     (or has no cost) if its :id is positive. If the id is negative, then it's a
     spout that connects to the node with corresponding positive :id.
@@ -91,57 +91,49 @@ function toLightGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
 
         # Set attributes :id and :nc
         set_prop!(mdg, outIdx, :id, -inIdx)
-        set_prop!(mdg, inIdx, :nc, true)
-        set_prop!(mdg, outIdx, :nc, true)
+        set_prop!(mdg, inIdx, :hasCost, true)
+        set_prop!(mdg, outIdx, :hasCost, true)
 
         # Set edge costs with node costs
-        unpackStruct(mdg, Edge(inIdx, outIdx), qnode.costs)
-    end
+        edge = Edge(inIdx, outIdx)
+        unpackStruct(mdg, edge, qnode.costs)
 
-    # """
-    # Add edges corresponding to a qchannel provided neither node has costs
-    # TODO: DEPRECIATE THIS
-    # """
-    # function NoCostChan(mdg, channel)
-    #     src = channel.src; dst = channel.dst
-    #     add_edge!(mdg, src, dst)
-    #     if channel.directed == false add_edge!(mdg, dst, src) end
-    #
-    #     for fieldType in fieldnames(typeof(channel))
-    #         if fieldType == :costs
-    #             unpackStruct(mdg, Edge(src, dst), channel.costs)
-    #         else
-    #             propVal = getproperty(channel, fieldType)
-    #             set_prop!(mdg, Edge(src, dst), fieldType, propVal)
-    #             if channel.directed == false
-    #                 set_prop!(mdg, Edge(dst, src), fieldType, propVal)
-    #             end
-    #         end
-    #     end
-    # end
+        # Set edge attributes for :src and :dst and specify edge is node cost
+        set_prop!(mdg, edge, :src, inIdx)
+        set_prop!(mdg, edge, :dst, -inIdx)
+        set_prop!(mdg, edge, :isNodeCost, true)
+        return
+    end
 
     """
     Set the attributes of a directed edge given a qchannel, source and destination
     """
     function setEdgeAttrs(mdg, qchannel, src, dst)
+        edge = Edge(src, dst)
         for fieldType in fieldnames(typeof(qchannel))
             if fieldType == :costs
-                unpackStruct(mdg, Edge(src, dst), qchannel.costs)
+                unpackStruct(mdg, edge, qchannel.costs)
+            elseif fieldType == :src
+                set_prop!(mdg, edge, :src, src)
+            elseif fieldType == :dst
+                set_prop!(mdg, edge, :dst, dst)
             else
                 propVal = getproperty(qchannel, fieldType)
-                set_prop!(mdg, Edge(src, dst), fieldType, propVal)
+                set_prop!(mdg, edge, fieldType, propVal)
             end
         end
+        # Specify this edge corresponds to a channel, not node cost
+        set_prop!(mdg, edge, :isNodeCost, false)
     end
 
     """
     Add edges corresponding to a qchannel if one or both node have costs.
     """
     function addEdgeFromChannel(mdg, qchannel)
-        srcnc = get_prop(mdg, qchannel.src, :nc)
-        dstnc = get_prop(mdg, qchannel.dst, :nc)
+        srcHasCost = get_prop(mdg, qchannel.src, :hasCost)
+        dstHasCost = get_prop(mdg, qchannel.dst, :hasCost)
 
-        if srcnc == true
+        if srcHasCost == true
             # Edge (-src, dst)
             minus_src = mdg.metaindex[:id][-qchannel.src]
             add_edge!(mdg, minus_src, qchannel.dst)
@@ -153,7 +145,7 @@ function toLightGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
         end
 
         if qchannel.directed == false
-            if dstnc == true
+            if dstHasCost == true
                 # Edge(-dst, src)
                 minus_dst = mdg.metaindex[:id][-qchannel.dst]
                 add_edge!(mdg, minus_dst, qchannel.src)
@@ -172,6 +164,7 @@ function toLightGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
     # Add QNetwork attributes
     set_prop!(mdg, :numNodes, net.numNodes)
     set_prop!(mdg, :numChannels, net.numChannels)
+    set_prop!(mdg, :nodeCosts, nodeCosts)
 
     # Add qnodes
     zeroCosts = Costs()
@@ -189,13 +182,6 @@ function toLightGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
     # Add channels
     for channel in net.channels
         addEdgeFromChannel(mdg, channel)
-        # srcnc = get_prop(mdg, channel.src, :nc)
-        # dstnc = get_prop(mdg, channel.dst, :nc)
-        # if nodeCosts == true && (srcnc == true || dstnc == true)
-        #     CostChan(mdg, channel)
-        # else
-        #     NoCostChan(mdg, channel)
-        # end
     end
     return mdg
 end

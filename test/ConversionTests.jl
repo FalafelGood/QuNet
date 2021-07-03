@@ -3,38 +3,50 @@ using Test
 using LightGraphs
 using MetaGraphs
 
-# @testset "Conversions.jl" begin
-#     #Test toLightGraph with standard network
-#     net = BasicNetwork(3)
-#     addChannel!(net, [(1,2),(2,3),(3,1)], [Costs(1.0, 1.0), Costs(1.0, 1.0), Costs(1.0, 1.0)])
-#     lg = QuNet.toLightGraph(net)
-#
-#     # Check num edges and vertices agrees
-#     @test length(lg.vprops) == 3
-#     @test length(lg.eprops) == 6
-#
-#     # Check structure
-#     edgeList = [Edge(1,2), Edge(2,3), Edge(3,1),
-#                 Edge(2,1), Edge(3,2), Edge(1,3)]
-#     @test (all(edge in keys(lg.eprops) for edge in edgeList))
-#
-#     # Check properties of an edge
-#     edge = lg.eprops[Edge(1, 3)]
-#     # TODO: Figure out this test...
-#     # @test edge[:src] == 1
-#     # @test edge[:dst] == 3
-#     @test edge[:CostsΔdE] == 1.0
-#     @test edge[:CostsΔdF] == 1.0
-#     @test edge[:active] == true
-#     # TODO -- Better tests here
-#
-#     # Test toLightGraph when nodes have costs
-# end
+@testset "Conversions.jl" begin
+    #Test toLightGraph with no node costs
+    net = BasicNetwork(3)
+    addChannel!(net, [(1,2),(2,3),(3,1)], [Costs(1.0, 1.0), Costs(1.0, 1.0), Costs(1.0, 1.0)])
+    lg = QuNet.toLightGraph(net)
 
-net = BasicNetwork()
-addNode!(net, [Costs(1.0, 1.0), Costs(1.0, 1.0), Costs(1.0, 1.0)])
-addChannel!(net, [(1,2),(2,3),(3,1)], [Costs(1.0, 1.0), Costs(1.0, 1.0), Costs(1.0, 1.0)])
-lg = QuNet.toLightGraph(net, true)
+    # Check essential graph properties
+    @test lg.gprops[:nodeCosts] == false
+
+    # Check num edges and vertices agrees
+    @test length(lg.vprops) == 3
+    @test length(lg.eprops) == 6
+
+    # Check graph structure
+    edgeList = [Edge(1,2), Edge(2,3), Edge(3,1),
+                Edge(2,1), Edge(3,2), Edge(1,3)]
+    @test (all(edge in keys(lg.eprops) for edge in edgeList))
+
+    # Check essential node properties
+    nodeProps = lg.vprops[1]
+    @test nodeProps[:id] == 1
+    @test nodeProps[:hasCost] == false
+
+    # Check essential edge properties
+    edgeProps = lg.eprops[Edge(1, 3)]
+    @test edgeProps[:src] == 1
+    @test edgeProps[:dst] == 3
+    @test edgeProps[:isNodeCost] == false
+
+    # Test toLightGraph when nodes have costs
+    net = BasicNetwork()
+    addNode!(net, [Costs(1.0, 1.0), Costs(1.0, 1.0), Costs(1.0, 1.0)])
+    addChannel!(net, [(1,2),(2,3),(3,1)], [Costs(1.0, 1.0), Costs(1.0, 1.0), Costs(1.0, 1.0)])
+    lg = QuNet.toLightGraph(net, true)
+
+    # Check essential graph properties
+    @test lg.gprops[:nodeCosts] == true
+
+    # Check num edges and vertices agrees
+    @test length(lg.vprops) == 6 # numVertices = numNodes + numNodes with cost
+    @test length(lg.eprops) == 9 # numEdges = numChannels + numNodes with cost
+
+    # Check graph structure
+end
 
 
 # prop = get_prop(lg, Edge(1,2), :costs)
