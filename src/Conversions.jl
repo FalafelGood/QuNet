@@ -106,24 +106,28 @@ function toLightGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
     end
 
     """
-    Set the attributes of a directed edge given a qchannel, source and destination
+    Set the attributes of a directed edge given a qchannel, source, destination
+    meta-source and meta-destanation (i.e. the :id attribute of the QNode)
     """
     function setEdgeAttrs(mdg, qchannel, src, dst)
-        edge = Edge(src, dst)
         for fieldType in fieldnames(typeof(qchannel))
             if fieldType == :costs
-                unpackStruct(mdg, edge, qchannel.costs)
+                unpackStruct(mdg, Edge(src, dst), qchannel.costs)
             elseif fieldType == :src
-                set_prop!(mdg, edge, :src, src)
+                # Set :src to :id of node
+                srcid = get_prop(mdg, src, :id)
+                set_prop!(mdg, Edge(src, dst), :src, srcid)
             elseif fieldType == :dst
-                set_prop!(mdg, edge, :dst, dst)
+                # Set :dst to :id of node
+                dstid = get_prop(mdg, dst, :id)
+                set_prop!(mdg, Edge(src, dst), :dst, dstid)
             else
                 propVal = getproperty(qchannel, fieldType)
-                set_prop!(mdg, edge, fieldType, propVal)
+                set_prop!(mdg, Edge(src, dst), fieldType, propVal)
             end
         end
         # Specify this edge corresponds to a channel, not node cost
-        set_prop!(mdg, edge, :isNodeCost, false)
+        set_prop!(mdg, Edge(src, dst), :isNodeCost, false)
     end
 
     """
@@ -136,8 +140,9 @@ function toLightGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
         if srcHasCost == true
             # Edge (-src, dst)
             minus_src = mdg.metaindex[:id][-qchannel.src]
-            add_edge!(mdg, minus_src, qchannel.dst)
-            setEdgeAttrs(mdg, qchannel, minus_src, qchannel.dst)
+            dst = qchannel.dst
+            add_edge!(mdg, minus_src, dst)
+            setEdgeAttrs(mdg, qchannel, minus_src, dst)
         else
             # Edge(src, dst)
             add_edge!(mdg, qchannel.src, qchannel.dst)
