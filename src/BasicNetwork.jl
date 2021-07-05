@@ -1,5 +1,5 @@
 """
-Define main structures for Basic and Dynamic QNetworks
+Define main structure for Basic QNetwork
 """
 
 """
@@ -29,6 +29,7 @@ mutable struct BasicNetwork <: QNetwork
         newNet = new(newNodes, [], adjList, numNodes, 0)
         return newNet
     end
+
 end
 
 """
@@ -141,6 +142,13 @@ function addChannel!(net::QNetwork, src::Int, dst::Int, costs=Costs())::Nothing
     end
 end
 
+# TODO: Test me
+function addChannel!(net::QNetwork, edge::AbstractEdge, costs=Costs())::Nothing
+    src = edge.src; dst = edge.dst
+    addChannel!(net, src, dst, costs)
+    return
+end
+
 function addChannel!(net::QNetwork, channel::QChannel)::Nothing
     if hasChannel(net, channel.src, channel.dst) == true
         # Find and replace channel
@@ -164,6 +172,13 @@ end
 function addChannel!(net::QNetwork, channelList::Vector{<:QChannel})
     for channel in channelList
         addChannel!(net, channel)
+    end
+end
+
+# TODO test me!
+function addChannel!(net::QNetwork, edgeList::Vector{<:AbstractEdge})
+    for edge in edgeList
+        addChannel!(net, edge)
     end
 end
 

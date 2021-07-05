@@ -2,34 +2,6 @@
 Master functions for interfacing with the graph implementation of the QNetwork.
 """
 
-function gGetAttr()
-    # TODO
-end
-
-function gGetCosts()
-    # TODO
-end
-
-function gAddNode!()
-    # TODO
-end
-
-function gRemoveNode!()
-    # TODO
-end
-
-function gHasChannel!()
-    # TODO
-end
-
-function gAddChannel!()
-    # TODO
-end
-
-function gRemoveChannel!()
-    # TODO
-end
-
 
 import SparseArrays:dropzeros!
 

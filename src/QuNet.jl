@@ -28,7 +28,7 @@ TIME_STEP = 0.01
 # WARNING The order of these is important.
 # Don't change them willy-nilly unless you like screaming
 include("Costs.jl")
-include("Network.jl")
+include("BasicNetwork.jl")
 include("TemporalGraphs.jl")
 include("CostVector.jl")
 include("Node.jl")
@@ -39,6 +39,7 @@ include("Plot.jl")
 include("Utilities.jl")
 include("Benchmarking.jl")
 include("GraphInterface.jl")
+include("Interface.jl")
 include("Generators.jl")
 include("Conversions.jl")
 
@@ -58,12 +59,15 @@ Costs, dE_to_E, E_to_dE, dF_to_F, F_to_dF,
 # # CostVector.jl
 # zero_costvector, unit_costvector, convert_costs, get_pathcv,
 
-# Network.jl
+# BasicNetwork.jl
 BasicNetwork, addNode!, hasChannel, getChannelIdx, addChannel!, convertNet!,
 #update, #refresh_graph!,
 
 # Node.jl
 BasicNode, CartCoords, CartNode, CartVelocity, CartSatNode,
+
+# Interface
+filterInactiveEdges, filterInactiveVertices,
 
 # Percolation.jl
 
