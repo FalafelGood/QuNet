@@ -21,6 +21,10 @@ import SatelliteToolbox: expatmosphere
 abstract type QObject end
 abstract type QNode <: QObject end
 abstract type QChannel <: QObject end
+abstract type StaticNode <: QNode end
+abstract type DynamicNode <: QNode end
+abstract type StaticChannel <: QChannel end
+abstract type DynamicChannel <: QChannel end
 abstract type QNetwork <: QObject end
 
 TIME_STEP = 0.01
@@ -60,7 +64,8 @@ Costs, dE_to_E, E_to_dE, dF_to_F, F_to_dF,
 # zero_costvector, unit_costvector, convert_costs, get_pathcv,
 
 # BasicNetwork.jl
-BasicNetwork, addNode!, hasChannel, getChannelIdx, addChannel!, convertNet!,
+BasicNetwork, addNode!, hasChannel, getChannelIdx, getChannel, addChannel!,
+convertNet!,
 #update, #refresh_graph!,
 
 # Node.jl

@@ -78,6 +78,9 @@ using StructEquality
     # Test getChannelIdx returns nothing when nodes out of range
     @test getChannelIdx(net, 100, 200) == nothing
 
+    # Test getChannel fetches channel
+    @test getChannel(net, 1, 2) == BasicChannel(1, 2)
+
     # Test that adjacency list was updated
     @test 2 in net.adjList[1] && 1 in net.adjList[2]
 
@@ -101,7 +104,17 @@ using StructEquality
     channel = BasicChannel(100, 200)
     @test_throws ErrorException addChannel!(net, channel)
 
-    # Test addChannel! for list of edges
+    # Test addChannel for edge
+    net = BasicNetwork(3)
+    addChannel!(net, QuNet.Edge(1,2))
+    @test( length(net.channels) == 1 && net.numChannels == 1)
+
+    # Test addChannel for list of edges
+    net = BasicNetwork(3)
+    addChannel!(net, [QuNet.Edge(1,2), QuNet.Edge(2,3)])
+    @test( length(net.channels) == 2 && net.numChannels == 2)
+
+    # Test addChannel! for list of int tuples
     net = BasicNetwork(3)
     edgeList = [(1,2),(2,3)]
     addChannel!(net, edgeList)
@@ -124,6 +137,7 @@ using StructEquality
     addChannel!(net, edgeList, costList)
     @test( net.channels[1] == BasicChannel(1, 2, Costs(1.0, 2.0)))
     @test all(channel.directed == false for channel in net.channels)
+
 end
 
     # # Test: Channels are correctly added

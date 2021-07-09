@@ -45,6 +45,7 @@ function toLightGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
     Set the attrtibutes of a vertex given a qnode and its index
     """
     function setVertexAttrs(mdg, qnode, idx)
+        set_prop!(mdg, idx, :type, typeof(qnode))
         qnodeFields = fieldnames(typeof(qnode))
         for fieldType in qnodeFields
             if fieldType != :costs
@@ -110,6 +111,7 @@ function toLightGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
     meta-source and meta-destanation (i.e. the :id attribute of the QNode)
     """
     function setEdgeAttrs(mdg, qchannel, src, dst)
+        set_prop!(mdg, Edge(src, dst), :type, typeof(qchannel))
         for fieldType in fieldnames(typeof(qchannel))
             if fieldType == :costs
                 unpackStruct(mdg, Edge(src, dst), qchannel.costs)
@@ -189,4 +191,53 @@ function toLightGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
         addEdgeFromChannel(mdg, channel)
     end
     return mdg
+end
+
+"""
+Convert a vertex in MetaDiGraph back to a Qnode
+"""
+function vertexToQnode(mdg::MetaDiGraph, vertex::Int)
+    vprops = props(mdg, vertex)
+    type = get_prop(mdg, vertex, :type)
+    fieldnames()
+end
+
+"""
+Convert an edge in MetaDiGraph back to a QChannel
+"""
+function edgeToQchannel(mdg:: MetaDiGraph, e::Edge)
+    #TODO
+end
+
+"""
+Update a metaDiGraph by some time increment
+"""
+function updateGraph!(mdg::MetaDiGraph, dt)
+    """
+    Get all dynamic objects from MetaDiGraph (I.E. those that have a corresponding
+    update! method)
+    """
+    function getDynamicObjs(g::AbstractMetaGraph, obj::Union{Integer, Edge})
+        typeProp = get_prop(g, obj, :type)
+        if typeProp <: DynamicNode
+            return true
+        elseif typeProp <: DynamicChannel
+            return true
+        end
+        return false
+    end
+    dyVerts = filter_vertices(mdg, getDynamicObjs)
+    dyEdges = filter_edges(mdg, getDynamicObjs)
+    for vertex in dyVerts
+        # TODO make QNode
+        vertexToQnode(mdg, vertex)
+        Base.@kwdef struct dummyNode
+        newNode.update!(newNode, dt)
+        # TODO update vertex properties
+    end
+    for edge in dyEdges
+        # TODO make QChannel
+        newChannel.update!(newChannel, dt)
+        # Update channel properties
+    end
 end

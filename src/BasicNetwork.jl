@@ -13,9 +13,10 @@ mutable struct BasicNetwork <: QNetwork
     adjList::Vector{Vector{Int}}
     numNodes::Int64
     numChannels::Int64
+    graph
 
     function BasicNetwork()
-        newNet = new([], [], Vector{Vector{Int}}(), 0, 0)
+        newNet = new([], [], Vector{Vector{Int}}(), 0, 0, nothing)
         return newNet
     end
 
@@ -26,7 +27,7 @@ mutable struct BasicNetwork <: QNetwork
             push!(newNodes, node)
         end
         adjList = [Vector{Int}() for i in 1:numNodes]
-        newNet = new(newNodes, [], adjList, numNodes, 0)
+        newNet = new(newNodes, [], adjList, numNodes, 0, nothing)
         return newNet
     end
 
@@ -119,6 +120,15 @@ function getChannelIdx(net::QNetwork, src::Int, dst::Int)
 end
 
 """
+Get the channel between src and dst. If no channel exists, return nothing
+"""
+function getChannel(net::QNetwork, src::Int, dst::Int)
+    idx = getChannelIdx(net, src, dst)
+    if idx == nothing; return nothing; end
+    return net.channels[idx]
+end
+
+"""
 Add one or more channels to the network. Replace the channel if it already
 exists. Throws an error if src or dst are not in the network.
 """
@@ -142,7 +152,6 @@ function addChannel!(net::QNetwork, src::Int, dst::Int, costs=Costs())::Nothing
     end
 end
 
-# TODO: Test me
 function addChannel!(net::QNetwork, edge::AbstractEdge, costs=Costs())::Nothing
     src = edge.src; dst = edge.dst
     addChannel!(net, src, dst, costs)
@@ -175,7 +184,6 @@ function addChannel!(net::QNetwork, channelList::Vector{<:QChannel})
     end
 end
 
-# TODO test me!
 function addChannel!(net::QNetwork, edgeList::Vector{<:AbstractEdge})
     for edge in edgeList
         addChannel!(net, edge)
@@ -205,10 +213,10 @@ end
 """
 Master function for converting from QNetwork to more optimised graph types
 """
-function convertNet!(net::QNetwork; convertTo::String = "LightGraph")
-    conversionMethods = Dict("LightGraph"=>QuNet.toLightGraph)
-    @assert convertTo in keys(conversionMethods) "Invalid conversion type. Try ?convertNet! for details."
-    return conversionMethods[convertTo](net)
+function convertNet!(net::QNetwork; graphType::Type = MetaDiGraph)
+    convMethods = Dict(MetaDiGraph=>QuNet.toLightGraph)
+    @assert convertTo in keys(convMethods) "Invalid conversion type. Try ?convertNet! for details."
+    net.graph = convMethods[convertTo](net)
 end
 
 

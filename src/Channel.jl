@@ -6,7 +6,7 @@ Define methods for determining costs of latter two.
 """
 Default Channel type
 """
-mutable struct BasicChannel <: QChannel
+mutable struct BasicChannel <: StaticChannel
     src::Int64
     dst::Int64
     costs::Costs
@@ -55,7 +55,7 @@ end
 """
 Fibre optic channel, where the cost is determined by exponential loss in length
 """
-mutable struct FibreChannel <: QChannel
+mutable struct FibreChannel <: StaticChannel
     src::Int64
     dst::Int64
     length::Float64
@@ -84,7 +84,7 @@ mutable struct FibreChannel <: QChannel
     end
 end
 
-mutable struct AirChannel <: QChannel
+mutable struct AirChannel <: DynamicChannel
     src::Int64
     dst::Int64
     length::Float64
@@ -92,6 +92,14 @@ mutable struct AirChannel <: QChannel
     capacity::Int64
     active::Bool
     directed::Bool
+
+    """
+    Update method for AirChannel
+    """
+    function update(channel::AirChannel, dt::Float64)
+        channel.length = distance(channel.src, channel.dst)
+        channel.costs = cost(channel)
+    end
 
     """
     Initialise an AirChannel from QNodes
@@ -136,12 +144,6 @@ function airCosts(src::QNode, dst::QNode)::Costs
     dE = E_to_dE(E)
     dF = F_to_dF(F)
     return Costs(dE, dF)
-end
-
-# TODO: Test me
-function update(channel::AirChannel, old_time::Float64, new_time::Float64)
-    channel.length = distance(channel.src, channel.dst)
-    channel.costs = cost(channel)
 end
 
 # """

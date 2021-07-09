@@ -23,11 +23,13 @@ using MetaGraphs
 
     # Check essential node properties
     nodeProps = lg.vprops[1]
+    @test nodeProps[:type] == BasicNode
     @test nodeProps[:id] == 1
     @test nodeProps[:hasCost] == false
 
     # Check essential edge properties
     edgeProps = lg.eprops[Edge(1, 3)]
+    @test edgeProps[:type] == BasicChannel
     @test edgeProps[:src] == 1
     @test edgeProps[:dst] == 3
     @test edgeProps[:isNodeCost] == false

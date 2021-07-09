@@ -26,7 +26,7 @@ function filterInactiveVertices(mdg::MetaDiGraph)
     Filter edges that are not connected to an innactive node
     """
     function edgeCondition(g, e)
-        if (get_prop(g, e.src, :active) == true && get_prop(g, e.src, :active) == true)
+        if (get_prop(g, e.src, :active) == true && get_prop(g, e.dst, :active) == true)
             return true
         end
         return false

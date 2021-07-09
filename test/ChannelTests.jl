@@ -4,7 +4,7 @@ using Test
 @testset "Channel.jl" begin
     # Test Basic channel is initalised correctly
     B = BasicChannel(1, 2)
-    @test (B.src == 1 && B.dst == 2 && B.costs.dE == 1.0 && B.costs.dF == 1.0)
+    @test (B.src == 1 && B.dst == 2 && B.costs.dE == 0.0 && B.costs.dF == 0.0)
 
     # Test cartesian distance
     A = CartNode(1, CartCoords())
