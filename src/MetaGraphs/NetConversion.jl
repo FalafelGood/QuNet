@@ -8,7 +8,7 @@ Convert a QNetwork object to a directed MetaGraphs in Julia LightGraphs.
 Directed MetaGraphs are used over weighted di-graphs is because they are more
 performant at removing edges.
 """
-function MetaDiGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
+function MetaDiGraph(net::BasicNetwork, nodeCosts::Bool = false)::AbstractGraph
 
     """
     Unpack the attributes of a struct into attributes of a MetaDiGraph object

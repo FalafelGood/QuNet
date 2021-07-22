@@ -30,6 +30,7 @@ abstract type QNetwork <: QObject end
 # WARNING The order of these is important.
 # Don't change them willy-nilly unless you like screaming
 include("Costs.jl")
+include("QNetwork.jl")
 include("BasicNetwork.jl")
 include("TemporalGraphs.jl")
 include("Node.jl")
@@ -42,35 +43,36 @@ include("MetaGraphs/NetInterface.jl")
 include("MetaGraphs/NetConversion.jl")
 include("Generators.jl")
 include("Pathset.jl")
-# include("MultiPath.jl")
+include("MultiPath.jl")
 
 export
-# Abstract Classes
-QObject, QNode, QChannel, QNetwork
+# # Abstract Classes
+QObject, QNode, QChannel, QNetwork,
 
-# Channel.jl
-BasicChannel, FibreChannel, AirChannel,
+# QNetwork.jl
+addNode!, hasChannel, getChannelIdx, getChannel, addChannel!,
+convertNet!,
 
-# Costs.jl
+# # Costs.jl
 Costs, dE_to_E, E_to_dE, dF_to_F, F_to_dF,
 
 # BasicNetwork.jl
-BasicNetwork, addNode!, hasChannel, getChannelIdx, getChannel, addChannel!,
-convertNet!,
+BasicNetwork,
+
+# # Channel.jl
+BasicChannel, FibreChannel, AirChannel,
 
 # DynamicNetwork.jl
 
 # Node.jl
 BasicNode, CartCoords, CartNode, CartVelocity, CartSatNode,
 
-# MetaGraphs
-
 # NetConversion
-# MetaDiGraph,
+MetaDiGraph,
 
 # NetInterface.jl
-# g_remChannel!, g_getProp, g_edgeCosts, g_pathCosts, g_networkPath, g_removePath!,
-# g_shortestPath, g_remShortestPath!, g_filterInactiveEdges, g_filterInactiveVertices,
+g_remChannel!, g_getProp, g_edgeCosts, g_pathCosts, g_networkPath, g_removePath!,
+g_shortestPath, g_remShortestPath!, g_filterInactiveEdges, g_filterInactiveVertices,
 
 # Percolation.jl
 

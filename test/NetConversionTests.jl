@@ -7,7 +7,7 @@ using MetaGraphs
     #Test toLightGraph with no node costs
     net = BasicNetwork(3)
     addChannel!(net, [(1,2),(2,3),(3,1)], [Costs(1.0, 1.0), Costs(1.0, 1.0), Costs(1.0, 1.0)])
-    lg = QuNet.toLightGraph(net)
+    lg = MetaDiGraph(net)
 
     # Check essential graph properties
     @test lg.gprops[:nodeCosts] == false
@@ -38,7 +38,7 @@ using MetaGraphs
     net = BasicNetwork()
     addNode!(net, [Costs(1.0, 1.0), Costs(1.0, 1.0), Costs(1.0, 1.0)])
     addChannel!(net, [(1,2),(2,3),(3,1)], [Costs(1.0, 1.0), Costs(1.0, 1.0), Costs(1.0, 1.0)])
-    lg = QuNet.toLightGraph(net, true)
+    lg = MetaDiGraph(net, true)
 
     # Check essential graph properties
     @test lg.gprops[:nodeCosts] == true
