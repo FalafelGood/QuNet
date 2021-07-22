@@ -8,7 +8,7 @@ Convert a QNetwork object to a directed MetaGraphs in Julia LightGraphs.
 Directed MetaGraphs are used over weighted di-graphs is because they are more
 performant at removing edges.
 """
-function toLightGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
+function MetaDiGraph(net::BasicNetwork, nodeCosts = false)::AbstractGraph
 
     """
     Unpack the attributes of a struct into attributes of a MetaDiGraph object
@@ -202,42 +202,36 @@ function vertexToQnode(mdg::MetaDiGraph, vertex::Int)
     fieldnames()
 end
 
-"""
-Convert an edge in MetaDiGraph back to a QChannel
-"""
-function edgeToQchannel(mdg:: MetaDiGraph, e::Edge)
-    #TODO
-end
-
-"""
-Update a metaDiGraph by some time increment
-"""
-function updateGraph!(mdg::MetaDiGraph, dt)
-    """
-    Get all dynamic objects from MetaDiGraph (I.E. those that have a corresponding
-    update! method)
-    """
-    function getDynamicObjs(g::AbstractMetaGraph, obj::Union{Integer, Edge})
-        typeProp = get_prop(g, obj, :type)
-        if typeProp <: DynamicNode
-            return true
-        elseif typeProp <: DynamicChannel
-            return true
-        end
-        return false
-    end
-    dyVerts = filter_vertices(mdg, getDynamicObjs)
-    dyEdges = filter_edges(mdg, getDynamicObjs)
-    for vertex in dyVerts
-        # TODO make QNode
-        vertexToQnode(mdg, vertex)
-        Base.@kwdef struct dummyNode
-        newNode.update!(newNode, dt)
-        # TODO update vertex properties
-    end
-    for edge in dyEdges
-        # TODO make QChannel
-        newChannel.update!(newChannel, dt)
-        # Update channel properties
-    end
-end
+# TODO
+# """
+# Update a metaDiGraph by some time increment
+# """
+# function updateGraph!(mdg::MetaDiGraph, dt)
+#     """
+#     Get all dynamic objects from MetaDiGraph (I.E. those that have a corresponding
+#     update! method)
+#     """
+#     function getDynamicObjs(g::AbstractMetaGraph, obj::Union{Integer, Edge})
+#         typeProp = get_prop(g, obj, :type)
+#         if typeProp <: DynamicNode
+#             return true
+#         elseif typeProp <: DynamicChannel
+#             return true
+#         end
+#         return false
+#     end
+#     dyVerts = filter_vertices(mdg, getDynamicObjs)
+#     dyEdges = filter_edges(mdg, getDynamicObjs)
+#     for vertex in dyVerts
+#         # TODO make QNode
+#         vertexToQnode(mdg, vertex)
+#         Base.@kwdef struct dummyNode
+#         newNode.update!(newNode, dt)
+#         # TODO update vertex properties
+#     end
+#     for edge in dyEdges
+#         # TODO make QChannel
+#         newChannel.update!(newChannel, dt)
+#         # Update channel properties
+#     end
+# end

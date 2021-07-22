@@ -43,28 +43,6 @@ function dict_err(dict_list)
     return averr
 end
 
-
-# """Generate a list of user_pairs for a QNetwork"""
-# function make_user_pairs(net::QNetwork, num_pairs::Int)::Vector{Tuple{Int64, Int64}}
-#     num_nodes = length(net.nodes)
-#     @assert num_nodes >= num_pairs*2 "Graph space too small for number of pairs"
-#     rand_space = Array(collect(1:num_nodes))
-#     pairs = Vector{Tuple}()
-#     i = 0
-#     while i < num_pairs
-#         idx = rand(1:length(rand_space))
-#         u = rand_space[idx]
-#         deleteat!(rand_space, idx)
-#         idx = rand(1:length(rand_space))
-#         v = rand_space[idx]
-#         deleteat!(rand_space, idx)
-#         chosen_pair = (u, v)
-#         push!(pairs, chosen_pair)
-#         i += 1
-#     end
-#     return pairs
-# end
-
 # TODO: This is probably a better function than above
 function make_user_pairs(net::QNetwork, num_pairs::Int; node_list=nothing)::Vector{Tuple{Int64, Int64}}
     num_nodes = length(net.nodes)

@@ -3,7 +3,7 @@ using Test
 using LightGraphs
 using MetaGraphs
 
-@testset "Conversions.jl" begin
+@testset "NetConversion.jl" begin
     #Test toLightGraph with no node costs
     net = BasicNetwork(3)
     addChannel!(net, [(1,2),(2,3),(3,1)], [Costs(1.0, 1.0), Costs(1.0, 1.0), Costs(1.0, 1.0)])

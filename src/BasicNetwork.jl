@@ -48,10 +48,10 @@ function addNode!(net::QNetwork, numNodes::Int)
     for id in curNum + 1 : curNum + numNodes
         node = BasicNode(id)
         push!(newNodes, node)
+        net.numNodes += 1
+        push!(net.adjList, Vector{Int}())
     end
     net.nodes = vcat(net.nodes, newNodes)
-    net.numNodes += 1
-    push!(net.adjList, Vector{Int}())
 end
 
 function addNode!(net::QNetwork, node::QNode)
@@ -147,9 +147,8 @@ function addChannel!(net::QNetwork, src::Int, dst::Int, costs=Costs())::Nothing
         # Update adjacency list
         push!(net.adjList[src], dst)
         push!(net.adjList[dst], src)
-        # Don't remove this return.
-        return
     end
+    return
 end
 
 function addChannel!(net::QNetwork, edge::AbstractEdge, costs=Costs())::Nothing
@@ -209,15 +208,24 @@ function addChannel!(net::QNetwork, edgeList::Vector{Tuple{Int, Int}}, costList:
     end
 end
 
-
 """
 Master function for converting from QNetwork to more optimised graph types
 """
-function convertNet!(net::QNetwork; graphType::Type = MetaDiGraph)
-    convMethods = Dict(MetaDiGraph=>QuNet.toLightGraph)
-    @assert convertTo in keys(convMethods) "Invalid conversion type. Try ?convertNet! for details."
-    net.graph = convMethods[convertTo](net)
+function convertNet!(net::QNetwork; graphType::Type = MetaDiGraph, nodeCosts = false)
+    supportedTypes = [:MetaDiGraph]
+    @assert graphType in supportedTypes "Invalid conversion type. Try ?convertNet! for details."
+    net.graph = eval(graphType)(net, nodeCosts)
 end
+
+#
+# """
+# Master function for converting from QNetwork to more optimised graph types
+# """
+# function convertNet!(net::QNetwork; graphType::Type = MetaDiGraph, nodeCosts = false)
+#     convMethods = Dict(MetaDiGraph=>QuNet.toLightGraph)
+#     @assert graphType in keys(convMethods) "Invalid conversion type. Try ?convertNet! for details."
+#     net.graph = convMethods[graphType](net, nodeCosts)
+# end
 
 
 # """
