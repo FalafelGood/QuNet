@@ -4,6 +4,8 @@ vertex v. The purpose of the pathset is to organise / keep track of paths that
 are purified together.
 """
 @def_structequal struct Pathset
+    src::Int
+    dst::Int
     paths::Vector{Vector{Tuple{Int, Int}}}
     freqs::Vector{Int}
 
@@ -42,6 +44,15 @@ are purified together.
         sort!(glob, by = globule -> sortmethod(globule))
         paths = collect(glob[i][PATH_IDX] for i in 1:lp)
         freqs = collect(glob[i][FREQ_IDX] for i in 1:lp)
-        new(paths, freqs)
+        new(src, dst, paths, freqs)
+    end
+end
+
+"""
+Remove the pathset from the graph
+"""
+function remPathset(net::BasicNetwork, pathset::Pathset)
+    for (idx, path) in enumerate(pathset.paths)
+        g_removePath!(net.graph, path, remHowMany = pathset.freqs[idx])
     end
 end

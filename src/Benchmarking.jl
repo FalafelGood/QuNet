@@ -1,4 +1,9 @@
 """
+TODO: OUTDATED
+Tools for Benchmarking Quantum Networks
+"""
+
+"""
 Return average average value for an array of cost vectors.
 If the length of the input is less than 1, mean is not well defined,
 the key values returned are 'nothing'.

@@ -1,4 +1,14 @@
 """
+TODO: OUTDATED
+Realistically there's no reason for this file to exist. We can build whatever
+graphs we want from third party constructors, and then convert them into
+Quantum networks with methods in BasicNetwork.jl, DynamicNetwork.jl or
+TemporalGraph.jl
+
+Generator methods for QNetworks
+"""
+
+"""
 GridNetwork(dim::Int64, dimY::Int64)
 
 Generates an X by Y grid network.

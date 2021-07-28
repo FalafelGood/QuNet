@@ -72,6 +72,16 @@ function hasChannel(net::QNetwork, src::Int, dst::Int)::Bool
 end
 
 """
+Get the node corresponding to the given id. If no node exists, returns nothing
+"""
+function getNode(net::QNetwork, id::Int)
+    if id > net.numNodes
+        return nothing
+    end
+    return net.nodes[id]
+end
+
+"""
 Fetch the net.channel index of the channel between src and dst
 If no channel exists, returns nothing
 """
@@ -175,6 +185,28 @@ function addChannel!(net::QNetwork, edgeList::Vector{Tuple{Int, Int}}, costList:
         newChannel = BasicChannel(src, dst, costList[i])
         addChannel!(net, newChannel)
     end
+end
+
+"""
+Get the costs of a path in the network.
+"""
+function pathCosts(net::QNetwork, path::Vector{Tuple{Int, Int}})
+    pcosts = Costs()
+    for costType in fieldnames(Costs)
+        for edge in path
+            src = getNode(net, path[1]); dst = getNode(net, path[2])
+            oldCosts = getproperty(pcosts, costType)
+            nodeCosts = getproperty(src.costs, costType)
+            channelCosts = getproperty(channel.costs, costType)
+            setproperty!(pcosts, costType, oldCosts + nodeCosts + channelCosts)
+        end
+        # Don't forget last node
+        lastNode = getNode(net, last(path)[2])
+        lastNodeCosts = getproperty(lastNode.costs, costType)
+        oldCosts = getproperty(pcosts, costType)
+        setproperty!(pcosts, costType, oldCosts + lastNodeCosts)
+    end
+    return pcosts
 end
 
 """

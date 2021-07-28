@@ -37,12 +37,12 @@ include("Node.jl")
 include("Channel.jl")
 include("Percolation.jl")
 include("Plot.jl")
-include("Utilities.jl")
 include("Benchmarking.jl")
 include("MetaGraphs/NetInterface.jl")
 include("MetaGraphs/NetConversion.jl")
 include("Generators.jl")
 include("Pathset.jl")
+include("Utilities.jl")
 include("MultiPath.jl")
 
 export
@@ -76,7 +76,10 @@ g_shortestPath, g_remShortestPath!, g_filterInactiveEdges, g_filterInactiveVerti
 
 # Percolation.jl
 
-# # Plot.jl
+# Pathset.jl
+Pathset,
+
+# Plot.jl
 # gplot,
 
 # Generators

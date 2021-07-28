@@ -9,7 +9,8 @@ const testdir = dirname(@__FILE__)
 
 tests = ["ChannelTests",
         "NetInterfaceTests",
-        "NetworkTests",
+        "QNetworkTests",
+        "BasicNetworkTests",
         "NodeTests",
         "PathsetTests",
         ]

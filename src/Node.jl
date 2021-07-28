@@ -1,4 +1,8 @@
 """
+Class definitions for QNode objects
+"""
+
+"""
 The default QNode object. Nothing special, but nothing unspecial either ;-)"
 """
 mutable struct BasicNode <: StaticNode

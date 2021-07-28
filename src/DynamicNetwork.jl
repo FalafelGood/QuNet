@@ -1,6 +1,7 @@
 """
-TODO:
+TODO: Not yet working
 """
+
 mutable struct DynamicNetwork <: QNetwork
     nodes::Vector{QNode}
     channels::Vector{QChannel}

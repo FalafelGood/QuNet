@@ -1,3 +1,8 @@
+"""
+TODO: OUTDATED
+Methods for multi-user multi-path routing in Quantum networks
+"""
+
 weights = SimpleWeightedGraphs.weights
 
 """

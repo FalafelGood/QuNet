@@ -1,5 +1,6 @@
 """
-Define structure for Node and channel costs
+Structure for Node and channel costs, and conversion methods between metric
+and decibelic costs
 """
 
 """

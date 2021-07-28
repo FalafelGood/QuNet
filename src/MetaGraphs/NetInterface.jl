@@ -44,7 +44,7 @@ Reduce the channel capacity associated with an edge by one.
 If the channel capacity is zero, remove the edge. If the channel is undirected,
 operate on both directions.
 """
-function g_remChannel!(mdg::MetaDiGraph, edge::Edge)::Nothing
+function g_remChannel!(mdg::MetaDiGraph, edge::Edge; remHowMany = 1)::Nothing
     if get_prop(mdg, edge, :isNodeCost) == true
         @warn ("edge in g_remChannel! is a node cost. Passing over edge")
         return
@@ -52,7 +52,9 @@ function g_remChannel!(mdg::MetaDiGraph, edge::Edge)::Nothing
     isdirected = get_prop(mdg, edge, :directed)
     capacity = get_prop(mdg, edge, :capacity)
     if capacity > 1
-        set_prop!(mdg, edge, :capacity, capacity-1)
+        # Make sure capacity doesn't underflow 0.
+        capacity - remHowMany >= 0 ? capacity = capacity - remHowMany : capacity = 0
+        set_prop!(mdg, edge, :capacity, capacity)
         if isdirected == false
             set_prop!(mdg, edge.dst, edge.src, :capacity, capacity-1)
         end
@@ -118,7 +120,8 @@ end
 """
 Get the costs associated with an edge in the MetaDiGraph
 """
-function g_edgeCosts(mdg::MetaDiGraph, edge::Edge{Int})::Costs
+function g_edgeCosts(mdg::MetaDiGraph, edge::Union{Tuple{Int, Int}, Edge{Int}})::Costs
+    if typeof(edge) == Tuple{Int, Int}; edge = Edge(edge) end
     @assert has_edge(mdg, edge) == true "Edge not found in graph"
     ecosts = Costs()
     for costType in fieldnames(Costs)
@@ -132,7 +135,7 @@ end
 """
 Given a path in the MetaDiGraph, return the associated costs
 """
-function g_pathCosts(mdg::MetaDiGraph, path::Vector{Edge{Int}})::Costs
+function g_pathCosts(mdg::MetaDiGraph, path::Union{Vector{Tuple{Int, Int}}, Vector{Edge{Int}}})::Costs
     pcosts = Costs()
     for edge in path
         ecosts = g_edgeCosts(mdg, edge)
@@ -168,9 +171,10 @@ end
 Remove a path in the MetaDiGraph, taking care not to remove edges corresponding
 with node costs
 """
-function g_removePath!(mdg::MetaDiGraph, path)::Nothing
+function g_removePath!(mdg::MetaDiGraph, path::Union{Vector{Tuple{Int, Int}}, Vector{Edge{Int}}}; remHowMany = 1)::Nothing
     deadpool = []
     for edge in path
+        if typeof(edge) == Vector{Tuple{Int, Int}}; edge = Edge(edge) end
         if get_prop(mdg, edge, :isNodeCost) == false
             g_remChannel!(mdg, edge)
         end
@@ -235,7 +239,6 @@ function g_remShortestPath!(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
     weightfield!(mdg, Symbol(cost))
     path = a_star(mdg, src, dst)
     pcosts = g_pathCosts(mdg, path)
-
     g_removePath!(mdg, path)
     return path, pcosts
 end

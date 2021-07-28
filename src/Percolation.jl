@@ -1,3 +1,9 @@
+"""
+TODO: OUTDATED
+
+Methods for percolating the vertices of a network for later benchmarking.
+"""
+
 function percolate_vertices(graph::AbstractGraph, p)::AbstractGraph
     return percolate_vertices(graph, p, [0])
 end

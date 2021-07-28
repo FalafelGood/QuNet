@@ -1,3 +1,8 @@
+"""
+TODO: OUTDATED
+Temporal MetaGraph structure
+"""
+
 mutable struct TemporalGraph
     #graph::SimpleWeightedDiGraph
     graph::Dict

@@ -1,3 +1,9 @@
+"""
+TODO: OUTDATED
+
+Functions for visualising Quantum Networks
+"""
+
 using Cairo, Compose
 
 function plot_network(graph::AbstractGraph, user_paths, locs_x, locs_y)

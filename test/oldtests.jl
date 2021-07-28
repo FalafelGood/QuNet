@@ -1,23 +1,5 @@
 """
-TODO: Old tests
-
-Unit tests for QuNet
-
-Hudson's style convention for testing:
-
-+ Redundency is good.
-+ Don't aim to be redundant, but don't aim for tight scripting either.
-+ If you want to manipulate a network from the network-library, (I.E. refreshing,
-  adding temporal links, percolating etc.) do it on a copy.
-+ One test set per file. Test every function in a given file thoroughly
-+ Each test or subset of tests within the testset should begin with a comment
-  briefly explaining what it's testing. Ideally, the test should work completely independently
-  from other tests.
-+ If you find something here that doesn't follow the style guide but it works regardless,
-  don't change it.
-+ Don't follow this style guide if you have a better one
-+ Redundency is good
-
+Old tests, disregard
 """
 
 using QuNet

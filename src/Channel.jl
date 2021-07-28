@@ -45,7 +45,7 @@ Calculate costs for FibreChannel given length
 Length and attenuation parameter β have unspecified units.
 """
 function fibreCosts(length::AbstractFloat, β::AbstractFloat = 0.001)::Costs
-    # TODO: Come up with more realistic fibre cost model and parameters
+    # TODO: Research more realistic fibre cost model and parameters
     # ATM this model means dE and dF are the same. Not likely!
     dE = E_to_dE(exp(-β * length))
     dF = F_to_dF((1 + exp(-β * length))/2)
