@@ -4,9 +4,19 @@ Exported functions have prefix "g_" to indicate they modify the graph level
 """
 
 """
-Get the index of a graph vertex from the :id of the network node
+Get the index of a graph vertex from the :id of the network node.
+
+Recall that if a node in the network has a cost then that cost is represented
+by a directed edge that joins a source to a sink where
+:id[source] = -:id[sink]
+
+If issrc is set to false, this function returns the index corresponding to the
+sink.
 """
-function g_index(mdg::MetaDiGraph, graphidx)
+function g_index(mdg::MetaDiGraph, graphidx; issrc = true)
+    if issrc == false
+        graphidx = -graphidx
+    end
     return mdg.metaindex[:id][graphidx]
 end
 
