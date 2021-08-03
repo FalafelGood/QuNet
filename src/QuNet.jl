@@ -39,6 +39,7 @@ include("Percolation.jl")
 include("Plot.jl")
 include("Benchmarking.jl")
 include("MetaGraphs/NetInterface.jl")
+include("MetaGraphs/GraphInterface.jl")
 include("MetaGraphs/NetConversion.jl")
 include("Generators.jl")
 include("Pathset.jl")
@@ -71,8 +72,11 @@ BasicNode, CartCoords, CartNode, CartVelocity, CartSatNode,
 MetaDiGraph,
 
 # NetInterface.jl
-g_remChannel!, g_getProp, g_edgeCosts, g_pathCosts, g_networkPath, g_removePath!,
+g_remChannel!, g_getProp, g_edgeCosts, g_pathCosts, n_path, g_removePath!,
 g_shortestPath, g_remShortestPath!, g_filterInactiveEdges, g_filterInactiveVertices,
+
+# Graph interface
+g_index,
 
 # Percolation.jl
 

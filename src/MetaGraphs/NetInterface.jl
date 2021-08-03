@@ -3,14 +3,15 @@ Interface functions for the MetaDiGraph representation of the QNetwork.
 Exported functions have prefix "g_" by convention
 """
 
-function g_addChannel(mdg::MetaDiGraph, src::Int, dst::Int; isdirected = false)
-    if add_edge!(mdg, src, dst) == false
-        @error("$src or $dst not valid nodes in the graph")
-    end
-    if isdirected == false
-        add_edge!(mdg, dst, src)
-    end
-end
+#TODO
+# function g_addChannel(mdg::MetaDiGraph, src::Int, dst::Int; isdirected = false)
+#     if add_edge!(mdg, src, dst) == false
+#         @error("$src or $dst not valid nodes in the graph")
+#     end
+#     if isdirected == false
+#         add_edge!(mdg, dst, src)
+#     end
+# end
 
 """
 Return true if an edge exists between the two nodes in the graph
@@ -25,8 +26,8 @@ function g_hasChannel(mdg::MetaDiGraph, src::Int, dst::Int, isdirected = false)
     if get_prop(mdg, src, :hasCost) == true
         src = -src
     end
-    src = graphIndex(mdg, src)
-    dst = graphIndex(mdg, dst)
+    src = g_index(mdg, src)
+    dst = g_index(mdg, dst)
     fwdQuery = has_edge(mdg, src, dst)
     if isdirected == true
         return fwdQuery
@@ -37,15 +38,8 @@ end
 """
 Get the :id of a network node from the index of a graph vertex
 """
-function networkIndex(mdg::MetaDiGraph, netidx)
+function n_index(mdg::MetaDiGraph, netidx)
     return mdg[netidx, :id]
-end
-
-"""
-Get the index of a graph vertex from the :id of the network node
-"""
-function graphIndex(mdg::MetaDiGraph, graphidx)
-    return mdg.metaindex[:id][graphidx]
 end
 
 """
@@ -160,7 +154,7 @@ end
 """
 Given a path in the MetaDiNetwork, convert it to a path in the QNetwork
 """
-function g_networkPath(mdg::MetaDiGraph, path::Vector{Edge{Int}})::Vector{Edge{Int}}
+function n_path(mdg::MetaDiGraph, path::Vector{Edge{Int}})::Vector{Edge{Int}}
     qpath = Vector{Edge}()
     pathLength = length(path)
     i = 0
@@ -196,11 +190,11 @@ Find the shortest path in terms of the specified cost field. Returns the network
 path along with the associated costs.
 """
 function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
-    src = graphIndex(mdg, src)
+    src = g_index(mdg, src)
     if get_prop(mdg, dst, :hasCost) == true
-        dst = graphIndex(mdg, -dst)
+        dst = g_index(mdg, -dst)
     else
-        dst = graphIndex(mdg, dst)
+        dst = g_index(mdg, dst)
     end
     @assert Symbol(cost) in fieldnames(Costs)
     cost = addCostPrefix(cost)
@@ -227,7 +221,7 @@ function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
     pcosts = g_pathCosts(mdg, path)
     if get_prop(mdg, :nodeCosts) == true
         # Filter out edges corresponding to node costs
-        path = g_networkPath(mdg, path)
+        path = n_path(mdg, path)
     end
     return path, pcosts
 end
@@ -237,11 +231,11 @@ Remove the shortest path in terms of the specified cost field. Returns the netwo
 path along with the associated costs.
 """
 function g_remShortestPath!(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
-    src = graphIndex(mdg, src)
+    src = g_index(mdg, src)
     if get_prop(mdg, dst, :hasCost) == true
-        dst = graphIndex(mdg, -dst)
+        dst = g_index(mdg, -dst)
     else
-        dst = graphIndex(mdg, dst)
+        dst = g_index(mdg, dst)
     end
     @assert Symbol(cost) in fieldnames(Costs)
     cost = addCostPrefix(cost)

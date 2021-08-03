@@ -112,11 +112,11 @@ Find the shortest path in terms of the specified cost field. Returns the network
 path along with the associated costs.
 """
 function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
-    src = graphIndex(mdg, src)
+    src = g_index(mdg, src)
     if get_prop(mdg, dst, :hasCost) == true
-        dst = graphIndex(mdg, -dst)
+        dst = g_index(mdg, -dst)
     else
-        dst = graphIndex(mdg, dst)
+        dst = g_index(mdg, dst)
     end
     @assert Symbol(cost) in fieldnames(Costs)
     cost = addCostPrefix(cost)
@@ -143,11 +143,17 @@ function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
     pcosts = g_pathCosts(mdg, path)
     # if get_prop(mdg, :nodeCosts) == true
     #     # Filter out edges corresponding to node costs
-    #     path = g_networkPath(mdg, path)
+    #     path = n_path(mdg, path)
     # end
     return path, pcosts
 end
 
+"""
+Get the index of a graph vertex from the :id of the network node
+"""
+function g_index(mdg::MetaDiGraph, graphidx)
+    return mdg.metaindex[:id][graphidx]
+end
 
 """
 Given src and dst in the network,

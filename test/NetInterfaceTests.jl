@@ -71,14 +71,14 @@ using Test
     pcosts = g_pathCosts(net.graph, elist)
     @test pcosts == Costs(3.0, 4.0)
 
-    # Test g_networkPath for Node Weights
+    # Test n_path for Node Weights
     net = BasicNetwork()
     addNode!(net, Costs(1.0, 1.0))
     addNode!(net, Costs(1.0, 1.0))
     addChannel!(net, 1, 2)
     convertNet!(net, nodeCosts = true)
     elist = [Edge(1,3), Edge(3,2), Edge(2,4)]::Vector{Edge{Int}}
-    path = g_networkPath(net.graph, elist)
+    path = n_path(net.graph, elist)
     @test path[1] == Edge(1,2)
 
     # Test g_shortestPath with Node Weights for simple graph
