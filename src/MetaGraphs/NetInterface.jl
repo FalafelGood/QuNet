@@ -14,6 +14,13 @@ Exported functions have prefix "g_" by convention
 # end
 
 """
+Get the :id of a network node from the index of a graph vertex
+"""
+function n_index(mdg::MetaDiGraph, netidx)
+    return mdg[netidx, :id]
+end
+
+"""
 Return true if an edge exists between the two nodes in the graph
 representation of the network, and false otherwise. If isdirected = false,
 this function returns true only if there also exists an edge in the reverse
@@ -33,13 +40,6 @@ function g_hasChannel(mdg::MetaDiGraph, src::Int, dst::Int, isdirected = false)
         return fwdQuery
     end
     return fwdQuery && has_edge(mdg, dst, src)
-end
-
-"""
-Get the :id of a network node from the index of a graph vertex
-"""
-function n_index(mdg::MetaDiGraph, netidx)
-    return mdg[netidx, :id]
 end
 
 """

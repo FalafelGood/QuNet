@@ -4,6 +4,14 @@ Exported functions have prefix "g_" to indicate they modify the graph level
 """
 
 """
+Get the index of a graph vertex from the :id of the network node
+"""
+function g_index(mdg::MetaDiGraph, graphidx)
+    return mdg.metaindex[:id][graphidx]
+end
+
+
+"""
 Interface functions for the MetaDiGraph representation of the QNetwork.
 Exported functions have prefix "g_" by convention
 """
@@ -146,13 +154,6 @@ function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
     #     path = n_path(mdg, path)
     # end
     return path, pcosts
-end
-
-"""
-Get the index of a graph vertex from the :id of the network node
-"""
-function g_index(mdg::MetaDiGraph, graphidx)
-    return mdg.metaindex[:id][graphidx]
 end
 
 """
