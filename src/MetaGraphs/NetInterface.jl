@@ -3,6 +3,15 @@ Interface functions for the MetaDiGraph representation of the QNetwork.
 Exported functions have prefix "g_" by convention
 """
 
+function g_addChannel(mdg::MetaDiGraph, src::Int, dst::Int; isdirected = false)
+    if add_edge!(mdg, src, dst) == false
+        @error("$src or $dst not valid nodes in the graph")
+    end
+    if isdirected == false
+        add_edge!(mdg, dst, src)
+    end
+end
+
 """
 Return true if an edge exists between the two nodes in the graph
 representation of the network, and false otherwise. If isdirected = false,
