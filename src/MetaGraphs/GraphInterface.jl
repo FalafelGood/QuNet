@@ -13,7 +13,7 @@ by a directed edge that joins a source to a sink where
 If issrc is set to false, this function returns the index corresponding to the
 sink.
 """
-function g_index(mdg::MetaDiGraph, graphidx; issrc = true)
+function g_index(mdg::MetaDiGraph, graphidx::Int; issrc = true)
     if issrc == false
         graphidx = -graphidx
     end
@@ -48,13 +48,10 @@ function g_remEdge!(mdg::MetaDiGraph, edge::Tuple{Int, Int})
 end
 
 
-"""
-Add prefix "CostΔ" onto a cost name so it can be accessed by g_getProp
-"""
-function addCostPrefix(cost::String)::String
-    cost = "CostsΔ" * cost
-    return cost
-end
+# function addCostPrefix(cost::String)::String
+#     cost = "CostsΔ" * cost
+#     return cost
+# end
 
 
 """
@@ -62,7 +59,7 @@ Wrapper function for getting properties from meta graph.
 """
 function g_getProp(mdg::MetaDiGraph, prop::String)
     if prop in fieldnames(Costs)
-        addCostPrefix!(prop)
+        QuNet.addCostPrefix!(prop)
     end
     return get_prop(mdg, Symbol(prop))
 end
@@ -71,7 +68,7 @@ end
 # Duplicate code is kind of ugly here...
 function g_getProp(mdg::MetaDiGraph, v::Int, prop::String)
     if prop in fieldnames(Costs)
-        addCostPrefix!(prop)
+        QuNet.addCostPrefix!(prop)
     end
     return get_prop(mdg, v, Symbol(prop))
 end
@@ -79,7 +76,7 @@ end
 
 function g_getProp(mdg::MetaDiGraph, e::Edge, prop::String)
     if prop in fieldnames(Costs)
-        addCostPrefix!(prop)
+        QuNet.addCostPrefix!(prop)
     end
     return get_prop(mdg, e, Symbol(prop))
 end
@@ -87,7 +84,7 @@ end
 
 function g_getProp(mdg::MetaDiGraph, s::Int, d::Int, prop::String)
     if prop in fieldnames(Costs)
-        addCostPrefix!(prop)
+        QuNet.addCostPrefix!(prop)
     end
     return get_prop(mdg, s, d, Symbol(prop))
 end
@@ -96,7 +93,9 @@ end
 """
 Get the costs associated with an edge in the MetaDiGraph
 """
-function g_edgeCosts(mdg::MetaDiGraph, edge::Tuple{Int, Int})::Costs
+function g_edgeCosts(mdg::MetaDiGraph, edge::Union{Tuple{Int, Int}, Edge{Int}})::Costs
+    # TODO: This function will not work for Tuple{Int, Int}!
+    if typeof(edge) == Tuple{Int, Int}; edge = Edge(edge) end
     @assert has_edge(mdg, edge) == true "Edge not found in graph"
     ecosts = Costs()
     for costType in fieldnames(Costs)
@@ -159,16 +158,47 @@ function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
     mdg.eprops = orig_eprops
 
     pcosts = g_pathCosts(mdg, path)
-    # if get_prop(mdg, :nodeCosts) == true
-    #     # Filter out edges corresponding to node costs
-    #     path = n_path(mdg, path)
-    # end
     return path, pcosts
 end
 
+
 """
-Given src and dst in the network,
+Return a graph with inactive channels removed
 """
-function g_getChannel(g_src::Int, g_dst::Int)::Tuple{Int, Int}
-    # TODO
+function g_filterInactiveEdges(mdg::MetaDiGraph)
+    # Filter out active edges
+    activeEdges = collect(filter_edges(mdg, :active, true))
+    # Filter out active edge properties
+    newEprops = Dict(activeKey => mdg.eprops[activeKey] for activeKey in activeEdges)
+    sdg = SimpleDiGraph(activeEdges)
+
+    newMeta = MetaDiGraph(sdg, mdg.vprops, newEprops, mdg.gprops,
+    mdg.weightfield, mdg.defaultweight, mdg.metaindex, mdg.indices)
+    return newMeta
+end
+
+
+"""
+Return a graph with channels in neighborhoods of inactive nodes removed.
+Edges are much faster to filter out than nodes since none of the
+"""
+function g_filterInactiveVertices(mdg::MetaDiGraph)
+    """
+    Filter edges that are not connected to an innactive node
+    """
+    function edgeCondition(g, e)
+        if (get_prop(g, e.src, :active) == true && get_prop(g, e.dst, :active) == true)
+            return true
+        end
+        return false
+    end
+
+    activeEdges = collect(filter_edges(mdg, edgeCondition))
+    # Filter out active edge properties
+    newEprops = Dict(activeKey => mdg.eprops[activeKey] for activeKey in activeEdges)
+    # Make new MetaDiGraph
+    sdg = SimpleDiGraph(activeEdges)
+    newMeta = MetaDiGraph(sdg, mdg.vprops, newEprops, mdg.gprops,
+    mdg.weightfield, mdg.defaultweight, mdg.metaindex, mdg.indices)
+    return newMeta
 end

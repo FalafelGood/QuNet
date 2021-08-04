@@ -9,33 +9,33 @@ using Test
 
 @testset "NetInterface.jl" begin
 
-    # Test g_hasChannel when isdirected == false
+    # Test n_hasChannel when isdirected == false
     net = BasicNetwork()
     addNode!(net, [Costs(1.,1.), Costs(1.,1.), Costs(1.1, 1.1)])
     addChannel!(net, 1, 2)
     convertNet!(net)
-    @test QuNet.g_hasChannel(net.graph, 1, 2) == true
-    @test QuNet.g_hasChannel(net.graph, 1, 3) == false
-    @test QuNet.g_hasChannel(net.graph, 1, 34) == false
+    @test QuNet.n_hasChannel(net.graph, 1, 2) == true
+    @test QuNet.n_hasChannel(net.graph, 1, 3) == false
+    @test QuNet.n_hasChannel(net.graph, 1, 34) == false
 
-    # Test g_hasChannel when isdirected == true
+    # Test n_hasChannel when isdirected == true
     net = BasicNetwork()
     addNode!(net, 2)
     addChannel!(net, 1, 2)
     channel = getChannel(net, 1, 2)
     channel.directed = true
     convertNet!(net)
-    @test QuNet.g_hasChannel(net.graph, 2, 1, true) == false
+    @test QuNet.n_hasChannel(net.graph, 2, 1, true) == false
 
-    # Test g_remChannel!
+    # Test n_remChannel!
     net = BasicNetwork(2)
     addChannel!(net, 1, 2)
     channel = getChannel(net, 1, 2)
     channel.capacity = 2
     convertNet!(net)
-    g_remChannel!(net.graph, Edge(1,2))
+    n_remChannel!(net.graph, Edge(1,2))
     @test g_getProp(net.graph, Edge(1,2), "capacity") == 1
-    g_remChannel!(net.graph, Edge(1,2))
+    n_remChannel!(net.graph, Edge(1,2))
     @test has_edge(net.graph, 1, 2) == false
     @test has_edge(net.graph, 2, 1) == false
 
@@ -90,12 +90,12 @@ using Test
     addChannel!(net, Edge(1,3), Costs(5.0, 5.0))
     addChannel!(net, Edge(2,3), Costs(0.0, 0.0))
     convertNet!(net, nodeCosts = true)
-    path, pcosts = g_shortestPath(net.graph, 1, 3, "dE")
+    path, pcosts = n_shortestPath(net.graph, 1, 3, "dE")
     @test path[1] == Edge(1,3)
     @test pcosts == Costs(8.0, 8.0)
 
     # Test g_remShortestPath for previous network
-    g_remShortestPath!(net.graph, 1, 3, "dE")
+    n_remShortestPath!(net.graph, 1, 3, "dE")
     @test has_edge(net.graph, 1, 4) == true && has_edge(net.graph, 4, 3) == false
 
     # Test g_shortestPath with Node weights for more complex graph
@@ -107,13 +107,13 @@ using Test
                 Costs(1.,1.), Costs(2.,2.), Costs(3., 3.)]
     addChannel!(net, edgeList, costList)
     convertNet!(net, nodeCosts = true)
-    path, pcosts = g_shortestPath(net.graph, 1, 5, "dF")
+    path, pcosts = n_shortestPath(net.graph, 1, 5, "dF")
     @test path == [Edge(1,2), Edge(2,5)]
     @test pcosts == Costs(5., 5.)
 
-    # Test g_remShortestPath! for more complex graph
-    g_remShortestPath!(net.graph, 1, 5, "dF")
-    @test QuNet.g_hasChannel(net.graph, 1, 2) == false && QuNet.g_hasChannel(net.graph, 2, 5) == false
+    # Test n_remShortestPath! for more complex graph
+    n_remShortestPath!(net.graph, 1, 5, "dF")
+    @test QuNet.n_hasChannel(net.graph, 1, 2) == false && QuNet.n_hasChannel(net.graph, 2, 5) == false
 
     # Test g_shortestPath! for channels where :active == false
     net = BasicNetwork(2)

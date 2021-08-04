@@ -53,6 +53,6 @@ Remove the pathset from the graph
 """
 function remPathset(net::BasicNetwork, pathset::Pathset)
     for (idx, path) in enumerate(pathset.paths)
-        g_removePath!(net.graph, path, remHowMany = pathset.freqs[idx])
+        n_removePath!(net.graph, path, remHowMany = pathset.freqs[idx])
     end
 end
