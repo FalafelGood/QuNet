@@ -1,6 +1,8 @@
 """
-Wrapper functions for MetaGraphs (And by extention LightGraphs) API
-Exported functions have prefix "g_" to indicate they modify the graph level
+Interface for manipulating the QNetwork at graph level. Mostly, this file consists
+of wrapper functions for MetaGraphs (And by extention LightGraphs) API.
+Exported functions have prefix "g_" to indicate they modify the graph at the
+graph level.
 """
 
 """
@@ -20,10 +22,29 @@ function g_index(mdg::MetaDiGraph, graphidx::Int; issrc = true)
     return mdg.metaindex[:id][graphidx]
 end
 
+"""
+Add a vertex to MetaDiGraph. Mostly copypasta from MetaGraphs.jl with one
+cosmetic difference: Return nv if node was added, return 0 else.
+"""
+function g_addVertex!(g::AbstractMetaGraph, d::Dict)
+    add_vertex!(g)
+    return nv(g)
+end
+
+function g_addVertex!(g::AbstractMetaGraph, d::Dict)
+    add_vertex!(g) || return 0
+    set_props!(g, nv(g), d)
+    return nv(g)
+end
+
+function g_addVertex!(g::AbstractMetaGraph, s::Symbol, v)
+    add_vertex!(g) || return 0
+    set_prop!(g, nv(g), s, v)
+    return nv(g)
+end
 
 """
-Interface functions for the MetaDiGraph representation of the QNetwork.
-Exported functions have prefix "g_" by convention
+Add an edge to the MetaDiGraph
 """
 function g_addEdge!(mdg::MetaDiGraph, src::Int, dst::Int)
     return add_edge!(mdg, src, dst)
@@ -33,7 +54,6 @@ end
 function g_hasEdge(mdg::MetaDiGraph, src::Int, dst::Int)
     return has_edge(mdg, src, dst)
 end
-
 
 """
 Get the index of a graph vertex from the :id of the network node
@@ -46,13 +66,6 @@ end
 function g_remEdge!(mdg::MetaDiGraph, edge::Tuple{Int, Int})
     return rem_edge!(mdg, edge)
 end
-
-
-# function addCostPrefix(cost::String)::String
-#     cost = "CostsΔ" * cost
-#     return cost
-# end
-
 
 """
 Wrapper function for getting properties from meta graph.
