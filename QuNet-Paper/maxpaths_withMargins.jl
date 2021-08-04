@@ -12,11 +12,11 @@ using Parameters
 
 
 datafile = "data/maxpaths"
-generate_new_data = false
+generate_new_data = true
 if generate_new_data == true
 
     # Params
-    num_trials = 500::Int64
+    num_trials = 1000::Int64
     min_size = 2::Int64
     max_size = 15::Int64
 
@@ -79,21 +79,21 @@ plot!(x[3:end], loss_arr4[3:end], linewidth=2, label=L"$\eta_3$", color =:purple
 plot!(x[3:end], z_arr4[3:end], linewidth=2, label=L"$F_4$", linestyle=:dash, color =:purple)
 
 # Plot analytic function for average cost:
-function M(n)
-    return 2/3 * n * (n^2 - 1) / (2 * n^2 - 1)
+function ave_pathlength(n)
+    return 2/3 * n
 end
 
-function E(n)
-    return 10^(-M(n) / 10)
+ave_e = []
+ave_f = []
+for size in min_size:max_size
+    e = dB_to_P(ave_pathlength(size))
+    f = dB_to_Z(ave_pathlength(size))
+    push!(ave_e, e)
+    push!(ave_f, f)
 end
 
-function F(n)
-    return (10^(-M(n) / 10) + 1)/2
-end
-ave_e = E.(x)
-ave_f = F.(x)
-#plot!(x, ave_e, linewidth=2, label=L"$\textrm{ave } \eta$", color =:orange)
-#plot!(x, ave_f, linewidth=2, label=L"$\textrm{ave } F$", linestyle=:dash, color =:orange)
+plot!(x, ave_e, linewidth=2, label=L"$\textrm{ave } \eta$", color =:orange)
+plot!(x, ave_f, linewidth=2, label=L"$\textrm{ave } F$", linestyle=:dash, color =:orange)
 
 xaxis!(L"$\textrm{Grid Size}$")
 
