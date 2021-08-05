@@ -250,6 +250,10 @@ function net_performance(network::Union{QNetwork, QuNet.TemporalGraph},
         ave_pathcounts_err[i] = std(data)/(sqrt(length(data)))
     end
 
+    # Convert costs from decibelic to metric form
+    metric_performance = convert_costs(performance)
+    metric_eff = convert_costs(performance_err)
+
     return performance, performance_err, ave_pathcounts, ave_pathcounts_err
 end
 

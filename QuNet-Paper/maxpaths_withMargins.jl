@@ -12,12 +12,12 @@ using Parameters
 
 
 datafile = "data/maxpaths"
-generate_new_data = true
+generate_new_data = false
 if generate_new_data == true
 
     # Params
     num_trials = 1000::Int64
-    min_size = 2::Int64
+    min_size = 5::Int64
     max_size = 15::Int64
 
     @assert min_size < max_size
@@ -73,10 +73,11 @@ plot(x, loss_arr1, linewidth=2, label=L"$\eta_1$", xlims=(0, max_size), color = 
 plot!(x, z_arr1, linewidth=2, label=L"$F_1$", linestyle=:dash, color =:red)
 plot!(x, loss_arr2, linewidth=2, label=L"$\eta_2$", color =:blue)
 plot!(x, z_arr2, linewidth=2, label=L"$F_2$", linestyle=:dash, color =:blue)
-plot!(x[3:end], loss_arr3[3:end], linewidth=2, label=L"$\eta_3$", color =:green)
-plot!(x[3:end], z_arr3[3:end], linewidth=2, label=L"$F_3$", linestyle=:dash, color =:green)
-plot!(x[3:end], loss_arr4[3:end], linewidth=2, label=L"$\eta_3$", color =:purple)
-plot!(x[3:end], z_arr4[3:end], linewidth=2, label=L"$F_4$", linestyle=:dash, color =:purple)
+# [3:end]
+plot!(x, loss_arr3, linewidth=2, label=L"$\eta_3$", color =:green)
+plot!(x, z_arr3, linewidth=2, label=L"$F_3$", linestyle=:dash, color =:green)
+plot!(x, loss_arr4, linewidth=2, label=L"$\eta_3$", color =:purple)
+plot!(x, z_arr4, linewidth=2, label=L"$F_4$", linestyle=:dash, color =:purple)
 
 # Plot analytic function for average cost:
 function ave_pathlength(n)
@@ -95,17 +96,22 @@ end
 plot!(x, ave_e, linewidth=2, label=L"$\textrm{ave } \eta$", color =:orange)
 plot!(x, ave_f, linewidth=2, label=L"$\textrm{ave } F$", linestyle=:dash, color =:orange)
 
+# Expectation value for
+
 xaxis!(L"$\textrm{Grid Size}$")
 
 savefig("plots/cost_maxpaths.png")
 savefig("plots/cost_maxpaths.pdf")
 
 # Logarithmic plot
+
+# Plot efficiencies
 plot(x, loss_arr1, linewidth=2, label=L"$\eta_1$", xlims=(0, max_size), yaxis=:log, color = :red, legend=:left)
 plot!(x, loss_arr2, linewidth=2, label=L"$\eta_2$", yaxis=:log, color =:blue)
 plot!(x[3:end], loss_arr3[3:end], linewidth=2, label=L"$\eta_3$", yaxis=:log, color =:green)
 plot!(x[3:end], loss_arr4[3:end], linewidth=2, label=L"$\eta_4$", yaxis=:log, color =:purple)
 
+# Plot fidelities
 z_arr1 = z_arr1 .- 0.5
 z_arr2 = z_arr2 .- 0.5
 z_arr3 = z_arr3 .- 0.5
@@ -116,6 +122,8 @@ plot!(x[1:end], z_arr2[1:end], linewidth=2, label=L"$F_2 - 0.5$", linestyle=:das
 plot!(x[3:end], z_arr3[3:end], linewidth=2, label=L"$F_3 - 0.5$", linestyle=:dash, color =:green, yaxis=:log)
 plot!(x[3:end], z_arr4[3:end], linewidth=2, label=L"$F_4 - 0.5$", linestyle=:dash, color =:purple, yaxis=:log)
 xaxis!(L"$\textrm{Grid Size}$")
+
+
 
 savefig("plots/cost_maxpathslog.png")
 savefig("plots/cost_maxpathslog.pdf")

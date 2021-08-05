@@ -11,7 +11,7 @@ using Parameters
 
 # Params
 num_trials = 500::Int64
-size = 2
+size = 20
 
 # performance data
 perf_data = []

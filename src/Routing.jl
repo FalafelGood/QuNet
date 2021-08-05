@@ -218,7 +218,7 @@ function greedy_multi_path!(network::QNetwork, purification_method,
         else
             purcost::Dict{Any, Any} = purification_method(userpaths)
             # Convert purcost from decibels to metric form
-            purcost = convert_costs(purcost)
+            # purcost = convert_costs(purcost)
             push!(pur_paths, purcost)
         end
     end
