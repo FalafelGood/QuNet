@@ -26,7 +26,7 @@ end
 Add a vertex to MetaDiGraph. Mostly copypasta from MetaGraphs.jl with one
 cosmetic difference: Return nv if node was added, return 0 else.
 """
-function g_addVertex!(g::AbstractMetaGraph, d::Dict)
+function g_addVertex!(g::AbstractMetaGraph)
     add_vertex!(g)
     return nv(g)
 end
