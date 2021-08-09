@@ -10,15 +10,16 @@ using Parameters
 
 
 # Params
-num_trials = 500::Int64
-size = 20
+num_trials = 1::Int64
+size = 10
+mpaths = 2
 
 # performance data
 perf_data = []
 # Generate network:
 net = GridNetwork(size, size)
 # Collect performance statistics for 1 userpair and 1 maxpath
-performance, dummy, dummy, dummy = net_performance(net, num_trials, 1, max_paths=1)
+performance, dummy, dummy, dummy = net_performance(net, num_trials, 1, max_paths=mpaths)
 push!(perf_data, performance)
 
 # Extract data from performance data
@@ -37,8 +38,10 @@ end
 theory_E = dB_to_P(ave_pathlength(size))
 theory_Z = dB_to_Z(ave_pathlength(size))
 
+theory_2E, theory_2Z = QuNet.purify_PBS(theory_E, theory_E, theory_Z, theory_Z)
+
 println("")
 println("ave_E: $ave_E")
-println("theory_E: $theory_E")
+println("theory_2E: $theory_2E")
 println("ave_Z: $ave_Z")
-println("theory_Z: $theory_Z")
+println("theory_2Z: $theory_2Z")

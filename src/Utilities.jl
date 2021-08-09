@@ -37,10 +37,10 @@ function dB_to_Z(dB::Float64)::Float64
 end
 
 
-function purify_PBS(F1::Float64,F2::Float64)::(Float64,Float64)
-    F = F1*F1 / (F1*F2 + (1-F1)(1-F2))
-    P = 1
-    return (F,P)
+function purify_PBS(E1::Float64,E2:: Float64,F1::Float64,F2::Float64)
+    E = E1*E2 * (F1*F2 + (1-F1)*(1-F2))
+    F = F1*F1 / (F1*F2 + (1-F1)*(1-F2))
+    return (E,F)
 end
 
 

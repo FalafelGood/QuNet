@@ -93,8 +93,20 @@ for size in min_size:max_size
     push!(ave_f, f)
 end
 
+ave_e2 = []
+ave_f2 = []
+for size in min_size:max_size
+    e = dB_to_P(ave_pathlength(size))
+    f = dB_to_Z(ave_pathlength(size))
+    e2, f2 = QuNet.purify_PBS(e, e, f, f)
+    push!(ave_e2, e2)
+    push!(ave_f2, f2)
+end
+
 plot!(x, ave_e, linewidth=2, label=L"$\textrm{ave } \eta$", color =:orange)
 plot!(x, ave_f, linewidth=2, label=L"$\textrm{ave } F$", linestyle=:dash, color =:orange)
+plot!(x, ave_e2, linewidth=2, label=L"$\textrm{ave } \eta_2$", color =:black)
+plot!(x, ave_f2, linewidth=2, label=L"$\textrm{ave } F_2$", linestyle=:dash, color =:black)
 
 # Expectation value for
 
