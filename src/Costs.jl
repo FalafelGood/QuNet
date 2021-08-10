@@ -54,3 +54,12 @@ function dF_to_F(dF::Float64)::Float64
     F = (10^(-dF/10) + 1)/2
     return F
 end
+
+function halfCost(costs::Costs)
+    newCosts = Costs()
+    for costType in fieldnames(Costs)
+        halfcost = getfield(costs, costType)/2
+        setfield!(newCosts, costType, halfcost)
+    end
+    return newCosts
+end

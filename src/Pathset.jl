@@ -30,7 +30,7 @@ are purified together.
             path = globule[1]
             # Length will sort most paths out
             len = length(path)
-            # .. but two paths could have same length. Need to sort by :id of nodes in path too
+            # .. but two paths could have same length. Need to sort by :qid of nodes in path too
             # Concatanate dst id's to a single number and normalise so < 1
             idstring = ""
             for (id, edge) in enumerate(path)

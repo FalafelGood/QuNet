@@ -24,7 +24,7 @@ using MetaGraphs
     # Check essential node properties
     nodeProps = lg.vprops[1]
     @test nodeProps[:type] == BasicNode
-    @test nodeProps[:id] == 1
+    @test nodeProps[:qid] == 1
     @test nodeProps[:hasCost] == false
 
     # Check essential edge properties
@@ -73,7 +73,7 @@ end
 # end
 
 # Test set indexing props for negative index
-# lg.metaindex[:id]
+# lg.metaindex[:qid]
 # set_prop!(lg, -1, :dummy, "Hi!")
 # props(lg, -1)
 

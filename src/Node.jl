@@ -7,18 +7,18 @@ The default QNode object. Nothing special, but nothing unspecial either ;-)"
 """
 mutable struct BasicNode <: StaticNode
     # Basic parameters
-    id::Int64
+    qid::Int64
     costs::Costs
     active::Bool
     has_memory::Bool
 
-    function BasicNode(id::Int64)
-        newNode = new(id, Costs(0.0, 0.0), true, false)
+    function BasicNode(qid::Int64)
+        newNode = new(qid, Costs(0.0, 0.0), true, false)
         return newNode
     end
 
-    function BasicNode(id::Int64, costs::Costs)
-        newNode = new(id, costs, true, false)
+    function BasicNode(qid::Int64, costs::Costs)
+        newNode = new(qid, costs, true, false)
         return newNode
     end
 end
@@ -40,19 +40,19 @@ end
 Similar to BasicNode, but with an extra parameter for cartesian spatial coordinates
 """
 mutable struct CartNode <: StaticNode
-    id::Int64
+    qid::Int64
     costs::Costs
     active::Bool
     has_memory::Bool
     coords::CartCoords
 
-    function CartNode(id::Int64, coords::CartCoords)
-        newNode = new(id, Costs(0.0, 0.0), true, false, coords)
+    function CartNode(qid::Int64, coords::CartCoords)
+        newNode = new(qid, Costs(0.0, 0.0), true, false, coords)
         return newNode
     end
 
-    function CartNode(id::Int64, costs::Costs, coords::CartCoords)
-        newNode = new(id, costs, true, false, coords)
+    function CartNode(qid::Int64, costs::Costs, coords::CartCoords)
+        newNode = new(qid, costs, true, false, coords)
         return newNode
     end
 end
@@ -74,7 +74,7 @@ end
 Satellite Node in Cartesian Coordinates
 """
 mutable struct CartSatNode <: DynamicNode
-    id::Int64
+    qid::Int64
     costs::Costs
     active::Bool
     has_memory::Bool
@@ -95,8 +95,8 @@ mutable struct CartSatNode <: DynamicNode
         return
     end
 
-    function CartSatNode(id::Int64, coords::CartCoords, velocity::CartVelocity)
-        newNode = new(id, Costs(0.0, 0.0), true, false, coords, velocity, 0.0, update!)
+    function CartSatNode(qid::Int64, coords::CartCoords, velocity::CartVelocity)
+        newNode = new(qid, Costs(0.0, 0.0), true, false, coords, velocity, 0.0, update!)
         return newNode
     end
 end

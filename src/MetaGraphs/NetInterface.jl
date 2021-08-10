@@ -14,10 +14,10 @@ Exported functions have prefix "g_" by convention
 # end
 
 """
-Get the :id of a network node from the index of a graph vertex
+Get the :qid of a network node from the index of a graph vertex
 """
 function n_index(mdg::MetaDiGraph, netidx)
-    return mdg[netidx, :id]
+    return mdg[netidx, :qid]
 end
 
 """
@@ -98,8 +98,8 @@ function n_path(mdg::MetaDiGraph, path::Vector{Edge{Int}})::Vector{Edge{Int}}
         if get_prop(mdg, edge, :isNodeCost) == true
         else
             src = edge.src; dst = edge.dst
-            srcid = abs(get_prop(mdg, src, :id))
-            dstid = abs(get_prop(mdg, dst, :id))
+            srcid = abs(get_prop(mdg, src, :qid))
+            dstid = abs(get_prop(mdg, dst, :qid))
             push!(qpath, Edge(srcid, dstid))
         end
     end

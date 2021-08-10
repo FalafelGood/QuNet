@@ -55,7 +55,7 @@ addNode!, hasChannel, getChannelIdx, getChannel, addChannel!,
 convertNet!,
 
 # # Costs.jl
-Costs, dE_to_E, E_to_dE, dF_to_F, F_to_dF,
+Costs, halfCost, dE_to_E, E_to_dE, dF_to_F, F_to_dF,
 
 # BasicNetwork.jl
 BasicNetwork,

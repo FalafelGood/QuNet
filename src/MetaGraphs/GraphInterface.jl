@@ -5,12 +5,24 @@ Exported functions have prefix "g_" to indicate they modify the graph at the
 graph level.
 """
 
+# Global vertex and edge meta attributes. Each vertex and edge in the graph
+# will be initialised with these props by default:
+vertexProps = Dict(:hasCost => false, :isChannel => false)
+edgeProps = Dict(:isNodeCost => false, :isChannel => false)
+
 """
-Get the index of a graph vertex from the :id of the network node.
+Map a node in the QuNet to a vertex in the graph
+"""
+function mapNodeToVert(mdg::MetaDiGraph, nodeid::Int, v::Int)
+    (get_prop(mdg, :nodeToVert))[nodeid] = v
+end
+
+"""
+Get the index of a graph vertex from the :qid of the network node.
 
 Recall that if a node in the network has a cost then that cost is represented
 by a directed edge that joins a source to a sink where
-:id[source] = -:id[sink]
+:qid[source] = -:qid[sink]
 
 If issrc is set to false, this function returns the index corresponding to the
 sink.
@@ -19,35 +31,50 @@ function g_index(mdg::MetaDiGraph, graphidx::Int; issrc = true)
     if issrc == false
         graphidx = -graphidx
     end
-    return mdg.metaindex[:id][graphidx]
+    return mdg.metaindex[:qid][graphidx]
 end
 
 """
-Add a vertex to MetaDiGraph. Mostly copypasta from MetaGraphs.jl with one
-cosmetic difference: Return nv if node was added, return 0 else.
+Given a QNode's id, get the vertex corresponding to it
 """
+function g_getVertex(mdg::MetaDiGraph, nodeid::Int)
+    return (get_prop(mdg, :nodeToVert))[nodeid]
+end
+
+"""
+Add a vertex to the MetaDiGraph and instantiate the default properties from
+the vertexProps dictionary.
+"""
+function g_addVertex!(g::AbstractMetaGraph)
+    add_vertex!(g)
+    idx = nv(g)
+    set_props!(g, idx, vertexProps)
+    return idx
+end
+
 function g_addVertex!(g::AbstractMetaGraph, d::Dict)
     add_vertex!(g)
-    return nv(g)
-end
-
-function g_addVertex!(g::AbstractMetaGraph, d::Dict)
-    add_vertex!(g) || return 0
+    idx = nv(g)
+    set_props!(g, idx, vertexProps)
     set_props!(g, nv(g), d)
-    return nv(g)
+    return idx
 end
 
 function g_addVertex!(g::AbstractMetaGraph, s::Symbol, v)
-    add_vertex!(g) || return 0
+    add_vertex!(g)
+    idx = nv(g)
+    set_props!(g, idx, vertexProps)
     set_prop!(g, nv(g), s, v)
-    return nv(g)
+    return idx
 end
 
 """
-Add an edge to the MetaDiGraph
+Add an edge to the MetaDiGraph and instantiate the default properties from
+the edgeProps dictionary.
 """
 function g_addEdge!(mdg::MetaDiGraph, src::Int, dst::Int)
-    return add_edge!(mdg, src, dst)
+    add_edge!(mdg, src, dst)
+    set_props!(mdg, src, dst, edgeProps)
 end
 
 
@@ -55,12 +82,12 @@ function g_hasEdge(mdg::MetaDiGraph, src::Int, dst::Int)
     return has_edge(mdg, src, dst)
 end
 
-"""
-Get the index of a graph vertex from the :id of the network node
-"""
-function g_index(mdg::MetaDiGraph, netidx)
-    return mdg.metaindex[:id][graphidx]
-end
+# """
+# Get the index of a graph vertex from the :qid of the network node
+# """
+# function g_index(mdg::MetaDiGraph, netidx)
+#     return mdg.metaindex[:qid][graphidx]
+# end
 
 
 function g_remEdge!(mdg::MetaDiGraph, edge::Tuple{Int, Int})
