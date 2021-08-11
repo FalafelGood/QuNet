@@ -24,15 +24,15 @@ function addNode!(net::QNetwork, numNodes::Int)
 end
 
 function addNode!(net::QNetwork, node::QNode)
-    if node.id <= net.numNodes
-        net.nodes[node.id] = node
-    elseif node.id == net.numNodes + 1
+    if node.qid <= net.numNodes
+        net.nodes[node.qid] = node
+    elseif node.qid == net.numNodes + 1
         push!(net.nodes, node)
         net.numNodes += 1
         push!(net.adjList, Vector{Int}())
     else
         @warn "node.id larger than net.numNodes. Setting node.id = net.numNodes + 1"
-        node.id = net.numNodes + 1
+        node.qid = net.numNodes + 1
         push!(net.nodes, node)
         net.numNodes += 1
         push!(net.adjList, Vector{Int}())

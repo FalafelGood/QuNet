@@ -13,32 +13,67 @@ edgeProps = Dict(:isNodeCost => false, :isChannel => false)
 """
 Map a node in the QuNet to a vertex in the graph
 """
-function mapNodeToVert(mdg::MetaDiGraph, nodeid::Int, v::Int)
+function mapNodeToVert!(mdg::MetaDiGraph, nodeid::Int, v::Int)
     (get_prop(mdg, :nodeToVert))[nodeid] = v
 end
 
-"""
-Get the index of a graph vertex from the :qid of the network node.
+# TODO: Needed?
+# """
+# Get the index of a graph vertex from the :qid of the network node.
+#
+# Recall that if a node in the network has a cost then that cost is represented
+# by a directed edge that joins a source to a sink where
+# :qid[source] = -:qid[sink]
+#
+# If issrc is set to false, this function returns the index corresponding to the
+# sink.
+# """
+# function g_index(mdg::MetaDiGraph, graphidx::Int; issrc = true)
+#     if issrc == false
+#         graphidx = -graphidx
+#     end
+#     return mdg.metaindex[:qid][graphidx]
+# end
 
-Recall that if a node in the network has a cost then that cost is represented
-by a directed edge that joins a source to a sink where
-:qid[source] = -:qid[sink]
-
-If issrc is set to false, this function returns the index corresponding to the
-sink.
 """
-function g_index(mdg::MetaDiGraph, graphidx::Int; issrc = true)
-    if issrc == false
-        graphidx = -graphidx
+Given a QNode's id, get the vertex corresponding to it. If no vertex exists,
+return 0.
+"""
+function g_getVertex(mdg::MetaDiGraph, nodeid::Int)
+    try
+        return (get_prop(mdg, :nodeToVert))[nodeid]
+    catch err
+        return 0
     end
-    return mdg.metaindex[:qid][graphidx]
 end
 
 """
-Given a QNode's id, get the vertex corresponding to it
+If a Qnode has a cost, this function returns the vertex corresponding to the cost.
+Otherwise, returns the vertex corresponding to the Qnode. If no node is found,
+throws an error
 """
-function g_getVertex(mdg::MetaDiGraph, nodeid::Int)
-    return (get_prop(mdg, :nodeToVert))[nodeid]
+function g_CostVertex(mdg::MetaDiGraph, nodeid::Int)
+    v = g_getVertex(mdg, nodeid)
+    if v == 0
+        error("Node not found in network")
+    end
+    if get_prop(mdg, :nodeCosts) == true && get_prop(mdg, v, :hasCost) == true
+        return g_getVertex(-nodeid)
+    end
+    return v
+end
+
+"""
+Given a vertex in the graph, get the QNode corresponding to it.
+If the vertex does not correspond to a QNode, return 0. Else if the vertex
+doesn't exist in the network, return an error.
+"""
+function g_getNode(mdg::MetaDiGraph, v::Int)
+    try
+        return get_prop(mdg, v, :qid)
+    catch err
+        return 0
+    end
 end
 
 """
@@ -72,13 +107,13 @@ end
 Add an edge to the MetaDiGraph and instantiate the default properties from
 the edgeProps dictionary.
 """
-function g_addEdge!(mdg::MetaDiGraph, src::Int, dst::Int)
+function g_addEdge!(mdg::AbstractMetaGraph, src::Int, dst::Int)
     add_edge!(mdg, src, dst)
     set_props!(mdg, src, dst, edgeProps)
 end
 
 
-function g_hasEdge(mdg::MetaDiGraph, src::Int, dst::Int)
+function g_hasEdge(mdg::AbstractMetaGraph, src::Int, dst::Int)
     return has_edge(mdg, src, dst)
 end
 
@@ -90,14 +125,14 @@ end
 # end
 
 
-function g_remEdge!(mdg::MetaDiGraph, edge::Tuple{Int, Int})
-    return rem_edge!(mdg, edge)
+function g_remEdge!(mdg::AbstractMetaGraph, edge::Tuple{Int, Int})
+    return rem_edge!(mdg, edge[1], edge[2])
 end
 
 """
 Wrapper function for getting properties from meta graph.
 """
-function g_getProp(mdg::MetaDiGraph, prop::String)
+function g_getProp(mdg::AbstractMetaGraph, prop::String)
     if prop in fieldnames(Costs)
         QuNet.addCostPrefix!(prop)
     end
@@ -106,7 +141,7 @@ end
 
 
 # Duplicate code is kind of ugly here...
-function g_getProp(mdg::MetaDiGraph, v::Int, prop::String)
+function g_getProp(mdg::AbstractMetaGraph, v::Int, prop::String)
     if prop in fieldnames(Costs)
         QuNet.addCostPrefix!(prop)
     end
@@ -114,7 +149,7 @@ function g_getProp(mdg::MetaDiGraph, v::Int, prop::String)
 end
 
 
-function g_getProp(mdg::MetaDiGraph, e::Edge, prop::String)
+function g_getProp(mdg::AbstractMetaGraph, e::Edge, prop::String)
     if prop in fieldnames(Costs)
         QuNet.addCostPrefix!(prop)
     end
@@ -122,7 +157,7 @@ function g_getProp(mdg::MetaDiGraph, e::Edge, prop::String)
 end
 
 
-function g_getProp(mdg::MetaDiGraph, s::Int, d::Int, prop::String)
+function g_getProp(mdg::AbstractMetaGraph, s::Int, d::Int, prop::String)
     if prop in fieldnames(Costs)
         QuNet.addCostPrefix!(prop)
     end

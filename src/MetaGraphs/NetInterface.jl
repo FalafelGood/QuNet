@@ -3,71 +3,127 @@ Interface functions for the MetaDiGraph representation of the QNetwork.
 Exported functions have prefix "g_" by convention
 """
 
-#TODO
-# function g_addChannel(mdg::MetaDiGraph, src::Int, dst::Int; isdirected = false)
-#     if add_edge!(mdg, src, dst) == false
-#         @error("$src or $dst not valid nodes in the graph")
-#     end
-#     if isdirected == false
-#         add_edge!(mdg, dst, src)
-#     end
-# end
 
 """
-Get the :qid of a network node from the index of a graph vertex
+Given a QNode, determine whether or not it exists in the MetaDiGraph
 """
-function n_index(mdg::MetaDiGraph, netidx)
-    return mdg[netidx, :qid]
-end
-
-"""
-Return true if a channel exists between the two nodes in the network,
-and false otherwise. If isdirected = false, this function returns true only if
-the channel is undirected.
-"""
-function n_hasChannel(mdg::MetaDiGraph, src::Int, dst::Int, isdirected = false)
-    if src > nv(mdg) || dst > nv(mdg)
+function n_hasNode(mdg::MetaDiGraph, nodeid::Int)
+    try
+        (get_prop(mdg, :nodeToVert))[nodeid]
+        return true
+    catch err
         return false
     end
-    if get_prop(mdg, src, :hasCost) == true
-        src = -src
+end
+
+
+"""
+Given the src and dst of a QChannel, determine if it exists in the MetaDiGraph
+"""
+function n_hasChannel(mdg::MetaDiGraph, srcid::Int, dstid::Int, directed=false)
+    if n_hasNode(srcid) == false || n_hasNode(dstid) == false
+        return false
     end
-    src = g_index(mdg, src)
-    dst = g_index(mdg, dst)
-    fwdQuery = has_edge(mdg, src, dst)
+    # Use cost node if srcid has cost
+    src = g_CostVertex(mdg, srcid)
+    dst = g_getVertex(mdg, dstid)
+    # Check if there's a node shared between src and dst
+    neighbors = common_neighbors(mdg, src, dst)
+    if length(neighbors) > 0
+        fwdQuery = true
+    else
+        fwdQuery = false
+    end
     if isdirected == true
         return fwdQuery
     end
-    return fwdQuery && has_edge(mdg, dst, src)
+    return fwdQuery && n_hasChannel(mdg, dstid, srcid, true)
 end
+
+
+"""
+Get a list of channel vertices between two nodes of the network. Return an empty
+list if no path is found.
+"""
+function n_getChannels(mdg::MetaDiGraph, srcid::Int, dstid::Int)
+    channels = []
+    if n_hasNode(srcid) == false || n_hasNode(dstid) == false
+        return []
+    end
+    # Use cost node if srcid has cost
+    src = g_CostVertex(mdg, srcid)
+    dst = g_getVertex(mdg, dstid)
+    neighbors = common_neighbors(mdg, src, dst)
+    for n in neighbors
+        if get_prop(mdg, n, :isChannel)
+            push!(channels, middle)
+        end
+    end
+    return channels
+end
+
 
 """
 Reduce the channel capacity associated with an channel by one.
 If the channel capacity is zero, remove the corresponding edge.
 If the channel is undirected, operate on both directions.
 """
-function n_remChannel!(mdg::MetaDiGraph, edge::Edge; remHowMany = 1)::Nothing
-    if get_prop(mdg, edge, :isNodeCost) == true
-        @warn ("edge in n_remChannel! is a node cost. Passing over edge")
+function n_remChannel!(mdg::MetaDiGraph, src::Int, dst::Int, chanVert::Int; remHowMany = 1)::Nothing
+    if get_prop(mdg, chanVert, :isChannel) == false
+        error("Vertex does not correspond to a channel")
+    end
+    chanSrc = get_prop(mdg, chanVert, :src)
+    chanDst = get_prop(mdg, chanVert, :dst)
+    @assert(chanSrc in (src, dst) && chanDst in (src, dst))
+
+    isdirected = get_prop(mdg, chanVert, :directed)
+    inOrder = (chanSrc == src && chanDst == dst)
+    if isdirected == true && inOrder == false
+        # No channel to remove
         return
     end
-    isdirected = get_prop(mdg, edge, :directed)
-    capacity = get_prop(mdg, edge, :capacity)
+
+    if inOrder == true
+        fieldToModify = :capacity
+    else
+        fieldToModify = :reverseCapacity
+    end
+
+    capacity = get_prop(mdg, chanVert, fieldToModify)
     if capacity > 1
         # Make sure capacity doesn't underflow 0.
         capacity - remHowMany >= 0 ? capacity = capacity - remHowMany : capacity = 0
-        set_prop!(mdg, edge, :capacity, capacity)
-        if isdirected == false
-            set_prop!(mdg, edge.dst, edge.src, :capacity, capacity-1)
-        end
+        set_prop!(mdg, chanVert, fieldToModify, capacity)
     else
-        rem_edge!(mdg, edge)
-        if isdirected == false
-            rem_edge!(mdg, edge.dst, edge.src)
+        # Remove the channel in the proper direction
+        if inOrder == true
+            rem_edge!(mdg, src, chanVert)
+            rem_edge!(mdg, chanVert, dst)
+        else
+            rem_edge!(mdg, dst, chanVert)
+            rem_edge!(mdg, chanVert, src)
         end
+    end
+    # If chanVert has no adjacent edges, remove chanVert too.
+    if degree(mdg, chanVert) == 0
+        rem_vertex!(mdg, chanVert)
     end
     return
 end
+
+
+"""
+Reduce the channel capacity associated with all channels connecting src and dst
+by one. If the channel capacity is zero, remove the channel. If the channel is
+undirected, operate on both directions.
+"""
+function n_remAllChannels!(mdg::MetaDiGraph, src::Int, dst::Int, remHowMany = 1)
+    channels = n_getChannels(mdg, src, dst)
+    for chan in channels
+        n_remChannel!(mdg, src, dst, chan, remHowMany)
+    end
+end
+
 
 """
 Add prefix "CostΔ" onto a cost name
@@ -88,19 +144,33 @@ function remCostPrefix(cost::String)::String
 end
 
 """
-Given a path in the MetaDiNetwork, convert it to a path in the QNetwork
+Given a path in the MetaDiGraph, convert it to a path in the QNetwork
 """
-function n_path(mdg::MetaDiGraph, path::Vector{Edge{Int}})::Vector{Edge{Int}}
+function n_vertexToNetPath(mdg::MetaDiGraph, path::Vector{Edge{Int}})
     qpath = Vector{Edge}()
     pathLength = length(path)
-    i = 0
+    firstLoop = true
     for edge in path
-        if get_prop(mdg, edge, :isNodeCost) == true
-        else
-            src = edge.src; dst = edge.dst
-            srcid = abs(get_prop(mdg, src, :qid))
-            dstid = abs(get_prop(mdg, dst, :qid))
-            push!(qpath, Edge(srcid, dstid))
+        tail = edge.src
+        head = edge.dst
+        if firstLoop == true
+            # Check and see if tail is a channel
+            if get_prop(mdg, tail, :isChannel) == true
+                error("Path begins with a channel vertex and is therefore incomplete")
+            end
+            firstLoop = false
+        end
+        if get_prop(mdg, head, :isChannel) == true
+            # The channel src is easy to infer since tail must connect to channel vertex
+            srcchan = abs(get_prop(mdg, tail, :qid))
+            # Two possible values for dstchan, head.src or head.dst
+            candidate == abs(get_prop(mdg, head, :src))
+            if srcchan == candidate
+                dstchan = abs(get_prop(mdg, head, :dst))
+            else
+                dstchan = candidate
+            end
+            push!(qpath, Edge(srcchan, dstchan))
         end
     end
     return qpath
@@ -112,16 +182,63 @@ Given a literal path in the MetaGraph, remove it from the network, taking care t
 channel bandwidth is reduced where applicable and making sure not to remove
 edges corresponding to node costs.
 """
-function n_removePath!(mdg::MetaDiGraph, path::Union{Vector{Tuple{Int, Int}}, Vector{Edge{Int}}}; remHowMany = 1)::Nothing
+function n_removeVertexPath!(mdg::MetaDiGraph, path::Union{Vector{Tuple{Int, Int}}, Vector{Edge{Int}}}; remHowMany = 1)::Nothing
     deadpool = []
+    firstLoop == true
     for edge in path
-        if typeof(edge) == Vector{Tuple{Int, Int}}; edge = Edge(edge) end
-        if get_prop(mdg, edge, :isNodeCost) == false
-            n_remChannel!(mdg, edge)
+        tail = edge.src
+        head = edge.dst
+        if firstLoop = true
+            if get_prop(mdg, tail, :isChannel) == true
+                push!(deadpool, tail)
+            end
+            firstLoop = false
         end
+        if get_prop(mdg, head, :isChannel) == true
+            push!(deadpool, head)
+        end
+    end
+    for chanVert in deadpool
+        n_remChannel!(mdg, src, dst, chanVert. remHowMany)
     end
     return
 end
+
+# """
+# Given a path in the MetaDiGraph, convert it to a path in the QNetwork
+# """
+# function n_path(mdg::MetaDiGraph, path::Vector{Edge{Int}})::Vector{Edge{Int}}
+#     qpath = Vector{Edge}()
+#     pathLength = length(path)
+#     i = 0
+#     for edge in path
+#         if get_prop(mdg, edge, :isNodeCost) == true
+#         else
+#             src = edge.src; dst = edge.dst
+#             srcid = abs(get_prop(mdg, src, :qid))
+#             dstid = abs(get_prop(mdg, dst, :qid))
+#             push!(qpath, Edge(srcid, dstid))
+#         end
+#     end
+#     return qpath
+# end
+
+
+# """
+# Given a literal path in the MetaGraph, remove it from the network, taking care that
+# channel bandwidth is reduced where applicable and making sure not to remove
+# edges corresponding to node costs.
+# """
+# function n_removePath!(mdg::MetaDiGraph, path::Union{Vector{Tuple{Int, Int}}, Vector{Edge{Int}}}; remHowMany = 1)::Nothing
+#     deadpool = []
+#     for edge in path
+#         if typeof(edge) == Vector{Tuple{Int, Int}}; edge = Edge(edge) end
+#         if get_prop(mdg, edge, :isNodeCost) == false
+#             n_remChannel!(mdg, edge)
+#         end
+#     end
+#     return
+# end
 
 """
 Find the shortest path in terms of the specified cost field. Returns the network

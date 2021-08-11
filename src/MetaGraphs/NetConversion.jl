@@ -69,8 +69,8 @@ function c_addQNode!(mdg::MetaDiGraph, qnode::QNode, nodeCosts::Bool=false)
     v = g_addVertex!(mdg)
     # set vertex props to be qnode fields
     setVertexAttrs(mdg, qnode, v)
-    mapNodeToVert(mdg, qnode.qid, v)
-    if nodeCosts == true && qnode.costs != zeroCosts
+    mapNodeToVert!(mdg, qnode.qid, v)
+    if nodeCosts == true && qnode.costs != Costs(0.,0.)
         set_prop!(mdg, v, :hasCost, true)
         addCostNode!(mdg, v, qnode)
     end
@@ -83,59 +83,64 @@ Add cost to Node in MetaDiGraph
 function addCostNode!(mdg, v, qnode)::Nothing
     # Add vertex to graph with default metaproperties
     cost_v = g_addVertex!(mdg)
+    mapNodeToVert!(mdg, -qnode.qid, cost_v)
+
     # Conncect directed edge between node and cost node
-    q_addEdge!(mdg, v, cost_v)
+    g_addEdge!(mdg, v, cost_v)
     # Set properties for cost node
     setVertexAttrs(mdg, qnode, cost_v)
-    set_prop!(mdg, cost_v, :qid, -inIdx)
+    set_prop!(mdg, cost_v, :qid, -qnode.qid)
     set_prop!(mdg, cost_v, :hasCost, true)
 
     # Set edge costs with node costs
     edge = Edge(v, cost_v)
     unpackStruct(mdg, edge, qnode.costs)
 
+    # NOTE: I don't think this commented code is necessary anymore
     # Set edge attributes for :src and :dst and specify edge is node cost
-    set_prop!(mdg, edge, :src, inIdx)
-    set_prop!(mdg, edge, :dst, -inIdx)
+    # set_prop!(mdg, edge, :src, inIdx)
+    # set_prop!(mdg, edge, :dst, -inIdx)
     set_prop!(mdg, edge, :isNodeCost, true)
     return
 end
 
 
 """
-Set the attributes of a directed edge corresponding to a qchannel
+Set the costs of a directed edge corresponding to a qchannel.
+(Because there are two of these in every channel, the costs are set to half
+their usual value)
 """
-function setEdgeAttrs(mdg, qchannel, src, dst)
-    set_prop!(mdg, Edge(src, dst), :type, typeof(qchannel))
-    for fieldType in fieldnames(typeof(qchannel))
-        if fieldType == :costs
-            unpackStruct(mdg, Edge(src, dst), halfCost(qchannel.costs))
-        elseif fieldType == :src || fieldType == :dst
-        # TODO: What is this code doing here?
-        # if fieldType == :src
-        #     # Set :src to :qid of node
-        #     srcid = get_prop(mdg, src, :qid)
-        #     set_prop!(mdg, Edge(src, dst), :src, srcid)
-        # elseif fieldType == :dst
-        #     # Set :dst to :qid of node
-        #     dstid = get_prop(mdg, dst, :qid)
-        #     set_prop!(mdg, Edge(src, dst), :dst, dstid)
-        else
-            propVal = getproperty(qchannel, fieldType)
-            set_prop!(mdg, Edge(src, dst), fieldType, propVal)
-        end
-    end
+function setEdgeCosts(mdg, qchannel, src, dst)
     # Specify this edge corresponds to a channel, not node cost
     set_prop!(mdg, Edge(src, dst), :isNodeCost, false)
+    unpackStruct(mdg, Edge(src, dst), halfCost(qchannel.costs))
 end
 
+"""
+Set the attributes of a vertex corresponding to a qchannel.
+(Essentially all of the attributes of the qchannel except for the costs which
+go to the edges)
+"""
+function setChanAttrs(mdg, v, qchannel)
+    set_prop!(mdg, v, :isChannel, true)
+    set_prop!(mdg, v, :type, typeof(qchannel))
+    if qchannel.directed == false
+        set_prop!(mdg, v, :reverseCapacity, qchannel.capacity)
+    end
+    for fieldType in fieldnames(typeof(qchannel))
+        if fieldType != :costs
+            propVal = getproperty(qchannel, fieldType)
+            set_prop!(mdg, v, fieldType, propVal)
+        end
+    end
+end
 
 """
 Add a QChannel to the Network graph
 """
 function c_addQChannel(mdg::MetaDiGraph, qchannel::QChannel)
     middle = g_addVertex!(mdg)
-    set_prop!(mdg, middle, :isChannel, true)
+    setChanAttrs(mdg, middle, qchannel)
 
     src = g_getVertex(mdg, qchannel.src)
     dst = g_getVertex(mdg, qchannel.dst)
@@ -146,9 +151,9 @@ function c_addQChannel(mdg::MetaDiGraph, qchannel::QChannel)
         # Edge (-src, dst)
         minus_src = g_getVertex(mdg, -qchannel.src)
         add_edge!(mdg, minus_src, middle)
-        add_edge(mdg, middle, dst)
-        setEdgeAttrs(mdg, qchannel, minus_src, middle)
-        setEdgeAttrs(mdg, qchannel, middle, dst)
+        add_edge!(mdg, middle, dst)
+        setEdgeCosts(mdg, qchannel, minus_src, middle)
+        setEdgeCosts(mdg, qchannel, middle, dst)
     else
         # Edge(src, dst)
         add_edge!(mdg, src, middle)
@@ -192,9 +197,8 @@ function MetaDiGraph(net::BasicNetwork, nodeCosts::Bool = false)::AbstractGraph
     set_prop!(mdg, :nodeCosts, nodeCosts)
 
     # Add qnodes
-    zeroCosts = Costs()
     for qnode in net.nodes
-        c_addQNode!(mdg, qnode)
+        c_addQNode!(mdg, qnode, nodeCosts)
     end
 
     # Add channels
