@@ -1,22 +1,15 @@
 using LightGraphs
 using QuNet
+using LightGraphs
+using GraphPlot
 
-# Make a network with node costs
-net = BasicNetwork()
-addNode!(net, [Costs(1.0, 1.0), Costs(1.0, 1.0)])
-addChannel!(net, [(1,2)], [Costs(1.0, 1.0)])
-mdg = MetaDiGraph(net, true)
-
-# Test mapNodeToVert!
-tmp = (get_prop(mdg, :nodeToVert))[1]
-QuNet.mapNodeToVert!(mdg, 1, 100)
-@test (get_prop(mdg, :nodeToVert))[1] == 100
-QuNet.mapNodeToVert!(mdg, 1, tmp)
-
-# Test g_getNode
-nodeid = QuNet.g_getNode(mdg, 1)
-@test nodeid == 1
-
-# println(nv(mdg))
-# println(ne(mdg))
-# println(mdg.gprops)
+# Test g_shortestPath! for channels where :active == false
+net = BasicNetwork(2)
+addChannel!(net, 1, 2, Costs(1.0, 1.0))
+channel = getChannel(net, 1, 2)
+channel.active = false
+mdg = MetaDiGraph(net)
+path, costs = g_shortestPath(mdg, 1, 2, "dE")
+println(path)
+println(costs)
+# TODO: Check that no path is found

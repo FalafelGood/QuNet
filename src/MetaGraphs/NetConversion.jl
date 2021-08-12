@@ -158,8 +158,8 @@ function c_addQChannel(mdg::MetaDiGraph, qchannel::QChannel)
         # Edge(src, dst)
         add_edge!(mdg, src, middle)
         add_edge!(mdg, middle, dst)
-        setEdgeAttrs(mdg, qchannel, src, middle)
-        setEdgeAttrs(mdg, qchannel, middle, dst)
+        setEdgeCosts(mdg, qchannel, src, middle)
+        setEdgeCosts(mdg, qchannel, middle, dst)
     end
 
     if qchannel.directed == false
@@ -168,14 +168,14 @@ function c_addQChannel(mdg::MetaDiGraph, qchannel::QChannel)
             minus_dst = g_getVertex(mdg, -qchannel.dst)
             add_edge!(mdg, minus_dst, middle)
             add_edge!(mdg, middle, src)
-            setEdgeAttrs(mdg, qchannel, minus_dst, middle)
-            setEdgeAttrs(mdg, qchannel, middle, src)
+            setEdgeCosts(mdg, qchannel, minus_dst, middle)
+            setEdgeCosts(mdg, qchannel, middle, src)
         else
             # Edge(dst, src)
             add_edge!(mdg, dst, middle)
             add_edge!(mdg, middle, src)
-            setEdgeAttrs(mdg, qchannel, dst, middle)
-            setEdgeAttrs(mdg, qchannel, middle, src)
+            setEdgeCosts(mdg, qchannel, dst, middle)
+            setEdgeCosts(mdg, qchannel, middle, src)
         end
     end
 end

@@ -58,7 +58,7 @@ function g_CostVertex(mdg::MetaDiGraph, nodeid::Int)
         error("Node not found in network")
     end
     if get_prop(mdg, :nodeCosts) == true && get_prop(mdg, v, :hasCost) == true
-        return g_getVertex(-nodeid)
+        return g_getVertex(mdg, -nodeid)
     end
     return v
 end
@@ -198,18 +198,11 @@ function g_pathCosts(mdg::MetaDiGraph, path::Union{Vector{Tuple{Int, Int}}, Vect
     return pcosts
 end
 
-
 """
 Find the shortest path in terms of the specified cost field. Returns the network
 path along with the associated costs.
 """
 function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
-    src = g_index(mdg, src)
-    if get_prop(mdg, dst, :hasCost) == true
-        dst = g_index(mdg, -dst)
-    else
-        dst = g_index(mdg, dst)
-    end
     @assert Symbol(cost) in fieldnames(Costs)
     cost = addCostPrefix(cost)
 
@@ -220,11 +213,18 @@ function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
     # Save original e_props
     orig_eprops = deepcopy(mdg.eprops)
 
-    # Set edge weights to Inf if :active == false
-    inactiveEdges = filter_edges(mdg, :active, false)
-    for edge in inactiveEdges
-        set_prop!(mdg, edge, Symbol(cost), Inf)
+    # Set channel weights to Inf if :active == false
+    inactiveChannels = filter_vertices(mdg, :active, false)
+    for chanVert in inactiveChannels
+        srcNode = get_prop(mdg, chanVert, :src)
+        dstNode = get_prop(mdg, chanVert, :dst)
+        n_setChannelCosts(mdg, srcNode, dstNode, chanVert, Costs(Inf, Inf))
     end
+
+    # inactiveEdges = filter_edges(mdg, :active, false)
+    # for edge in inactiveEdges
+    #     set_prop!(mdg, edge, Symbol(cost), Inf)
+    # end
 
     path = a_star(mdg, src, dst)
 
@@ -235,6 +235,43 @@ function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
     pcosts = g_pathCosts(mdg, path)
     return path, pcosts
 end
+
+# """
+# Find the shortest path in terms of the specified cost field. Returns the network
+# path along with the associated costs.
+# """
+# function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
+#     src = g_index(mdg, src)
+#     if get_prop(mdg, dst, :hasCost) == true
+#         dst = g_index(mdg, -dst)
+#     else
+#         dst = g_index(mdg, dst)
+#     end
+#     @assert Symbol(cost) in fieldnames(Costs)
+#     cost = addCostPrefix(cost)
+#
+#     # Save original weightfield and set new weight to the cost
+#     orig_wf = weightfield(mdg)
+#     weightfield!(mdg, Symbol(cost))
+#
+#     # Save original e_props
+#     orig_eprops = deepcopy(mdg.eprops)
+#
+#     # Set edge weights to Inf if :active == false
+#     inactiveEdges = filter_edges(mdg, :active, false)
+#     for edge in inactiveEdges
+#         set_prop!(mdg, edge, Symbol(cost), Inf)
+#     end
+#
+#     path = a_star(mdg, src, dst)
+#
+#     # Reset weightfield and eprops
+#     weightfield!(mdg, orig_wf)
+#     mdg.eprops = orig_eprops
+#
+#     pcosts = g_pathCosts(mdg, path)
+#     return path, pcosts
+# end
 
 
 """
