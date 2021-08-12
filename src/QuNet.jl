@@ -73,7 +73,7 @@ MetaDiGraph,
 
 # NetInterface.jl
 n_hasNode, n_hasChannel, n_getChannels, n_remChannel!, n_remAllChannels!, n_vertexToNetPath,
-n_removeVertexPath!, n_remShortestPath!, n_shortestPath, n_setChannelCosts,
+n_removeVertexPath!, n_remShortestPath!, n_shortestPath, n_channelCosts, n_setChannelCosts,
 
 # Graph interface
 g_getNode, g_addVertex!, g_addVertex!, g_addEdge!, g_hasEdge, g_remEdge!, g_getProp,

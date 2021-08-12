@@ -117,13 +117,6 @@ function g_hasEdge(mdg::AbstractMetaGraph, src::Int, dst::Int)
     return has_edge(mdg, src, dst)
 end
 
-# """
-# Get the index of a graph vertex from the :qid of the network node
-# """
-# function g_index(mdg::MetaDiGraph, netidx)
-#     return mdg.metaindex[:qid][graphidx]
-# end
-
 
 function g_remEdge!(mdg::AbstractMetaGraph, edge::Tuple{Int, Int})
     return rem_edge!(mdg, edge[1], edge[2])
@@ -221,11 +214,6 @@ function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
         n_setChannelCosts(mdg, srcNode, dstNode, chanVert, Costs(Inf, Inf))
     end
 
-    # inactiveEdges = filter_edges(mdg, :active, false)
-    # for edge in inactiveEdges
-    #     set_prop!(mdg, edge, Symbol(cost), Inf)
-    # end
-
     path = a_star(mdg, src, dst)
 
     # Reset weightfield and eprops
@@ -236,48 +224,11 @@ function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
     return path, pcosts
 end
 
-# """
-# Find the shortest path in terms of the specified cost field. Returns the network
-# path along with the associated costs.
-# """
-# function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
-#     src = g_index(mdg, src)
-#     if get_prop(mdg, dst, :hasCost) == true
-#         dst = g_index(mdg, -dst)
-#     else
-#         dst = g_index(mdg, dst)
-#     end
-#     @assert Symbol(cost) in fieldnames(Costs)
-#     cost = addCostPrefix(cost)
-#
-#     # Save original weightfield and set new weight to the cost
-#     orig_wf = weightfield(mdg)
-#     weightfield!(mdg, Symbol(cost))
-#
-#     # Save original e_props
-#     orig_eprops = deepcopy(mdg.eprops)
-#
-#     # Set edge weights to Inf if :active == false
-#     inactiveEdges = filter_edges(mdg, :active, false)
-#     for edge in inactiveEdges
-#         set_prop!(mdg, edge, Symbol(cost), Inf)
-#     end
-#
-#     path = a_star(mdg, src, dst)
-#
-#     # Reset weightfield and eprops
-#     weightfield!(mdg, orig_wf)
-#     mdg.eprops = orig_eprops
-#
-#     pcosts = g_pathCosts(mdg, path)
-#     return path, pcosts
-# end
-
-
 """
 Return a graph with inactive channels removed
 """
 function g_filterInactiveEdges(mdg::MetaDiGraph)
+    # TODO update
     # Filter out active edges
     activeEdges = collect(filter_edges(mdg, :active, true))
     # Filter out active edge properties
@@ -295,6 +246,7 @@ Return a graph with channels in neighborhoods of inactive nodes removed.
 Edges are much faster to filter out than nodes since none of the
 """
 function g_filterInactiveVertices(mdg::MetaDiGraph)
+    # TODO update
     """
     Filter edges that are not connected to an innactive node
     """

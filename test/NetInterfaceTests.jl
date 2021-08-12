@@ -168,9 +168,9 @@ using Test
     # Check that no path is found
     @test path == [] && costs == Costs()
 
-    # # Test property was correctly reset
-    # @test get_prop(net.graph, 1, 2, :CostsΔdE) == 1.0
-    #
+    # Test property was correctly reset
+    @test n_channelCosts(mdg, 1, 2, 3) == Costs(1.,1.)
+    
     # """
     # Make a partially disabled network to test filtering for inactive
     # edges and inactive vertices

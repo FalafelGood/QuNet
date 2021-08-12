@@ -40,6 +40,24 @@ function n_hasChannel(mdg::MetaDiGraph, srcid::Int, dstid::Int, directed=false)
     return fwdQuery && n_hasChannel(mdg, dstid, srcid, true)
 end
 
+"""
+Return the costs for a channel
+"""
+function n_channelCosts(mdg, srcNode::Int, dstNode::Int, chanVert::Int)
+    chancosts = Costs()
+    srcVert = g_getVertex(mdg, srcNode)
+    dstVert = g_getVertex(mdg, dstNode)
+    for costname in fieldnames(Costs)
+        formattedName = QuNet.addCostPrefix(string(costname))
+        halfVal = get_prop(mdg, srcVert, chanVert, Symbol(formattedName))
+        setproperty!(chancosts, costname, 2*halfVal)
+    end
+    return chancosts
+end
+
+"""
+Set the costs for a channel
+"""
 function n_setChannelCosts(mdg, srcNode::Int, dstNode::Int, chanVert::Int, costs::Costs)
     half = halfCost(costs)
     srcVert = g_getVertex(mdg, srcNode)
