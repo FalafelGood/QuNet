@@ -12,7 +12,6 @@ using LightGraphs
     net = BasicNetwork()
     @test net.nodes == [] && typeof(net.nodes) == Array{QNode, 1}
     @test net.channels == [] && typeof(net.channels) == Array{QChannel, 1}
-    @test net.adjList == Vector{Vector{Int}}()
     @test net.numNodes == 0
     @test net.numChannels == 0
 
@@ -23,9 +22,6 @@ using LightGraphs
     @test all(typeof(n) == BasicNode for n in net.nodes)
     # Check that id is properly initialised
     @test all(n.qid == idx for (idx, n) in enumerate(net.nodes))
-
-    # Test adjacency list init
-    @test length(net.adjList) == net.numNodes
 
     # Test BasicNetwork init for SimpleGraph input
     g = SimpleGraph(2)

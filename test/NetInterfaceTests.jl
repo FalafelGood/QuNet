@@ -32,8 +32,8 @@ using Test
     addChannel!(net, 1, 2)
     channel = getChannel(net, 1, 2)
     channel.directed = true
-    convertNet!(net)
-    @test QuNet.n_hasChannel(net.graph, 2, 1, true) == false
+    mdg = MetaDiGraph(net)
+    @test QuNet.n_hasChannel(mdg, 2, 1, true) == false
 
     # Test n_channelCosts
     chan = n_uniqueChannel(mdg, 1, 2)
@@ -116,20 +116,20 @@ using Test
     # Test g_edgeCosts for a channel edge (It should be half the cost)
     net = BasicNetwork(2)
     addChannel!(net, 1, 2, Costs(1.0, 2.0))
-    convertNet!(net)
-    ecosts = g_edgeCosts(net.graph, Edge(1,3))
+    mdg = MetaDiGraph(net)
+    ecosts = g_edgeCosts(mdg, Edge(1,3))
     @test ecosts == Costs(0.5, 1.0)
 
     # Test g_edgeCosts errors when edge not found in graph
-    @test_throws AssertionError g_edgeCosts(net.graph, Edge(100,200))
+    @test_throws AssertionError g_edgeCosts(mdg, Edge(100,200))
 
     # Test g_pathCosts
     net = BasicNetwork(3)
     addChannel!(net, 1, 2, Costs(1.0, 2.0))
     addChannel!(net, 2, 3, Costs(2.0, 2.0))
-    convertNet!(net)
+    mdg = MetaDiGraph(net)
     elist = [Edge(1,4), Edge(4,2), Edge(2,5), Edge(5,3)]::Vector{Edge{Int}}
-    pcosts = g_pathCosts(net.graph, elist)
+    pcosts = g_pathCosts(mdg, elist)
     @test pcosts == Costs(3.0, 4.0)
 
     # Test g_shortestPath with Node Weights for simple graph
@@ -140,15 +140,15 @@ using Test
     addChannel!(net, Edge(1,2), Costs(0.0, 0.0))
     addChannel!(net, Edge(1,3), Costs(5.0, 5.0))
     addChannel!(net, Edge(2,3), Costs(0.0, 0.0))
-    convertNet!(net, nodeCosts = true)
-    path, pcosts = n_shortestPath(net.graph, 1, 3, "dE")
+    mdg = MetaDiGraph(net, true)
+    path, pcosts = n_shortestPath(mdg, 1, 3, "dE")
     @test path[1] == Edge(1,3)
     @test pcosts == Costs(8.0, 8.0)
 
     # Test n_remShortestPath for previous network
-    path, pcosts = n_remShortestPath!(net.graph, 1, 3, "dE")
+    path, pcosts = n_remShortestPath!(mdg, 1, 3, "dE")
     @test path == [Edge(1,3)]
-    path, pcosts = n_remShortestPath!(net.graph, 1, 3, "dE")
+    path, pcosts = n_remShortestPath!(mdg, 1, 3, "dE")
     @test path == [Edge(1,2), Edge(2,3)]
 
     # Test g_shortestPath with Node weights for more complex graph
@@ -159,14 +159,14 @@ using Test
     costList = [Costs(1.,1.), Costs(2.,2.), Costs(3., 3.),
                 Costs(1.,1.), Costs(2.,2.), Costs(3., 3.)]
     addChannel!(net, edgeList, costList)
-    convertNet!(net, nodeCosts = true)
-    path, pcosts = n_shortestPath(net.graph, 1, 5, "dF")
+    mdg = MetaDiGraph(net, true)
+    path, pcosts = n_shortestPath(mdg, 1, 5, "dF")
     @test path == [Edge(1,2), Edge(2,5)]
     @test pcosts == Costs(5., 5.)
 
     # Test n_remShortestPath! for more complex graph
-    n_remShortestPath!(net.graph, 1, 5, "dF")
-    @test QuNet.n_hasChannel(net.graph, 1, 2) == false && QuNet.n_hasChannel(net.graph, 2, 5) == false
+    n_remShortestPath!(mdg, 1, 5, "dF")
+    @test QuNet.n_hasChannel(mdg, 1, 2) == false && QuNet.n_hasChannel(mdg, 2, 5) == false
 
     # Test g_shortestPath! for channels where :active == false
     net = BasicNetwork(2)
@@ -180,40 +180,4 @@ using Test
 
     # Test property was correctly reset
     @test n_channelCosts(mdg, 1, 2, 3) == Costs(1.,1.)
-
-    # """
-    # Make a partially disabled network to test filtering for inactive
-    # edges and inactive vertices
-    # """
-    # function makeDisabledNetwork()
-    #     net = BasicNetwork(5)
-    #     addChannel!(net, [(1,2),(2,3),(3,1)])
-    #     addChannel!(net, [(1,4),(4,5)])
-    #
-    #     for srcdst in [(1,2),(2,3),(3,1)]
-    #         channel = getChannel(net, srcdst[1], srcdst[2])
-    #         channel.active = false
-    #     end
-    #
-    #     node = net.nodes[4]
-    #     node.active = false
-    #
-    #     convertNet!(net)
-    #     return net
-    # end
-    #
-    # net = makeDisabledNetwork()
-    # filteredNet = g_filterInactiveEdges(net.graph)
-    # deletedEdges = [Edge(1,2), Edge(2,3), Edge(3,1),
-    #                 Edge(2,1), Edge(3,2), Edge(1,3)]
-    # remainingEdges = [Edge(1,4), Edge(4,5), Edge(4,1), Edge(5,4)]
-    # @test all(has_edge(filteredNet, edge) == false for edge in deletedEdges)
-    # @test all(has_edge(filteredNet, edge) == true for edge in remainingEdges)
-    #
-    # filteredNet = g_filterInactiveVertices(net.graph)
-    # deletedEdges = [Edge(1,4), Edge(4,5), Edge(4,1), Edge(5,4)]
-    # remainingEdges = [Edge(1,2), Edge(2,3), Edge(3,1),
-    #                 Edge(2,1), Edge(3,2), Edge(1,3)]
-    # @test all(has_edge(filteredNet, edge) == false for edge in deletedEdges)
-    # @test all(has_edge(filteredNet, edge) == true for edge in remainingEdges)
 end

@@ -18,7 +18,6 @@ function addNode!(net::QNetwork, numNodes::Int)
         node = BasicNode(id)
         push!(newNodes, node)
         net.numNodes += 1
-        push!(net.adjList, Vector{Int}())
     end
     net.nodes = vcat(net.nodes, newNodes)
 end
@@ -29,13 +28,11 @@ function addNode!(net::QNetwork, node::QNode)
     elseif node.qid == net.numNodes + 1
         push!(net.nodes, node)
         net.numNodes += 1
-        push!(net.adjList, Vector{Int}())
     else
         @warn "node.id larger than net.numNodes. Setting node.id = net.numNodes + 1"
         node.qid = net.numNodes + 1
         push!(net.nodes, node)
         net.numNodes += 1
-        push!(net.adjList, Vector{Int}())
     end
 end
 
@@ -55,20 +52,6 @@ function addNode!(net::QNetwork, costList::Vector{Costs})
     for cost in costList
         addNode!(net, cost)
     end
-end
-
-"""
-Is there a channel between src and dst?
-Throws an error if either src or dst are larger than number of nodes in network
-"""
-function hasChannel(net::QNetwork, src::Int, dst::Int)::Bool
-    if src > net.numNodes && dst > net.numNodes
-        error("Node(s) does not exist in network")
-    end
-    if dst in net.adjList[src]
-        return true
-    end
-    return false
 end
 
 """
@@ -108,25 +91,17 @@ function getChannel(net::QNetwork, src::Int, dst::Int)
 end
 
 """
-Add one or more channels to the network. Replace the channel if it already
-exists. Throws an error if src or dst are not in the network.
+Add one or more channels to the network.
+
+# TODO: Throw an error if src or dst not in the network
 """
 function addChannel!(net::QNetwork, src::Int, dst::Int, costs=Costs())::Nothing
-    if hasChannel(net, src, dst) == true
-        # Find and replace channel
-        idx = getChannelIdx(net, src, dst)
-        if idx == nothing
-            error("Backend failure -- No channel found connecting nodes $src and $dst")
-        end
-        net.channels[idx] = BasicChannel(src, dst, costs)
-    else
-        newChannel = BasicChannel(src, dst, costs)
-        push!(net.channels, newChannel)
-        net.numChannels += 1
-        # Update adjacency list
-        push!(net.adjList[src], dst)
-        push!(net.adjList[dst], src)
+    if src > net.numNodes || dst > net.numNodes
+        error("Src or dst not in the network")
     end
+    newChannel = BasicChannel(src, dst, costs)
+    push!(net.channels, newChannel)
+    net.numChannels += 1
     return
 end
 
@@ -137,23 +112,13 @@ function addChannel!(net::QNetwork, edge::AbstractEdge, costs=Costs())::Nothing
 end
 
 function addChannel!(net::QNetwork, channel::QChannel)::Nothing
-    if hasChannel(net, channel.src, channel.dst) == true
-        # Find and replace channel
-        idx = getChannelIdx(net, channel.src, channel.dst)
-        if idx == nothing
-            error("Backend failure -- No channel found connecting nodes $src and $dst")
-        end
-        net.channels[idx] = channel
-        return
-    else
-        push!(net.channels, channel)
-        net.numChannels += 1
-        # Update adjacency list
-        push!(net.adjList[channel.src], channel.dst)
-        push!(net.adjList[channel.dst], channel.src)
-        # Don't remove this return.
-        return
+    if channel.src > net.numNodes || channel.dst > net.numNodes
+        error("Src or dst not in the network")
     end
+    push!(net.channels, channel)
+    net.numChannels += 1
+    # Don't remove this return.
+    return
 end
 
 function addChannel!(net::QNetwork, channelList::Vector{<:QChannel})
@@ -207,13 +172,4 @@ function pathCosts(net::QNetwork, path::Vector{Tuple{Int, Int}})
         setproperty!(pcosts, costType, oldCosts + lastNodeCosts)
     end
     return pcosts
-end
-
-"""
-Master function for converting from QNetwork to more optimised graph types
-"""
-function convertNet!(net::QNetwork; graphType::Type = MetaDiGraph, nodeCosts = false)
-    supportedTypes = [MetaDiGraph]
-    @assert graphType in supportedTypes "Invalid conversion type. Try ?convertNet! for details."
-    net.graph = eval(graphType)(net, nodeCosts)
 end

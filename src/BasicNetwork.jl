@@ -10,13 +10,11 @@ into more optimised graph structures via convertNet!()
 mutable struct BasicNetwork <: QNetwork
     nodes::Vector{QNode}
     channels::Vector{QChannel}
-    adjList::Vector{Vector{Int}}
     numNodes::Int64
     numChannels::Int64
-    graph
 
     function BasicNetwork()
-        newNet = new([], [], Vector{Vector{Int}}(), 0, 0, nothing)
+        newNet = new([], [], 0, 0)
         return newNet
     end
 
@@ -26,8 +24,7 @@ mutable struct BasicNetwork <: QNetwork
             node = BasicNode(id)
             push!(newNodes, node)
         end
-        adjList = [Vector{Int}() for i in 1:numNodes]
-        newNet = new(newNodes, [], adjList, numNodes, 0, nothing)
+        newNet = new(newNodes, [], numNodes, 0)
         return newNet
     end
 end
@@ -47,6 +44,5 @@ function BasicNetwork(g::SimpleGraph{T}, edgeCosts::Costs = Costs(1.0, 1.0)) whe
         channel = BasicChannel(edge.src, edge.dst, edgeCosts)
         push!(newNet.channels, channel)
     end
-    newNet.adjList = g.fadjlist
     return newNet
 end

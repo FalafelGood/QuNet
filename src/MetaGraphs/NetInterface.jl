@@ -81,7 +81,7 @@ exists between them. If not, this function throws an error
 function n_uniqueChannel(mdg::MetaDiGraph, srcNode::Int, dstNode::Int)
     channels = n_getChannels(mdg, srcNode, dstNode)
     if length(channels) != 1
-        @error("More than one (or 0) channels found in n_uniqueChannel")
+        error("More than one (or 0) channels found in n_uniqueChannel")
     end
     return channels[1]
 end
@@ -131,7 +131,10 @@ function n_getChannels(mdg::MetaDiGraph, srcNode::Int, dstNode::Int)
     # Use cost node if srcNode has cost
     srcVert = g_CostVertex(mdg, srcNode)
     dstVert = g_CostVertex(mdg, dstNode)
-    neighbors = common_neighbors(mdg, srcVert, dstVert)
+    sn = all_neighbors(mdg, srcVert)
+    dn = all_neighbors(mdg, dstVert)
+    neighbors = intersect(sn, dn)
+    # neighbors = common_neighbors(mdg, srcVert, dstVert)
     for n in neighbors
         if get_prop(mdg, n, :isChannel)
             push!(channels, n)

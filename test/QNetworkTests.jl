@@ -6,12 +6,11 @@ using StructEquality
 @def_structequal BasicNode
 @def_structequal BasicChannel
 
-@testset "Network.jl" begin
+@testset "QNetworkTests.jl" begin
     # Test BasicNetwork initialisation
     net = BasicNetwork()
     @test net.nodes == [] && typeof(net.nodes) == Array{QNode, 1}
     @test net.channels == [] && typeof(net.channels) == Array{QChannel, 1}
-    @test net.adjList == Vector{Vector{Int}}()
     @test net.numNodes == 0
     @test net.numChannels == 0
 
@@ -22,9 +21,6 @@ using StructEquality
     @test all(typeof(n) == BasicNode for n in net.nodes)
     # Check that id is properly initialised
     @test all(n.qid == idx for (idx, n) in enumerate(net.nodes))
-
-    # Test adjacency list init
-    @test length(net.adjList) == net.numNodes
 
     # Test addNode! works on previous network
     addNode!(net, 10)
@@ -66,9 +62,6 @@ using StructEquality
     addChannel!(net, 1, 2)
     @test net.channels[1] == BasicChannel(1, 2)
 
-    # Test hasChannel
-    @test hasChannel(net, 1, 2) == true
-
     # Test getChannelIdx
     @test getChannelIdx(net, 1, 2) == 1
 
@@ -81,24 +74,10 @@ using StructEquality
     # Test getChannel fetches channel
     @test getChannel(net, 1, 2) == BasicChannel(1, 2)
 
-    # Test that adjacency list was updated
-    @test 2 in net.adjList[1] && 1 in net.adjList[2]
-
     # Test addChannel! for preinitialised channel
     channel = BasicChannel(2,3, Costs(1.0, 2.0))
     addChannel!(net, channel)
     @test (net.channels[2] == channel)
-
-    # Test that adjacency list was updated
-    @test 3 in net.adjList[2] && 2 in net.adjList[3]
-
-    # Test addChannel! replaces existing channel and doesn't change adjList
-    oldAdj = net.adjList
-    channel = BasicChannel(2,3, Costs(5.0, 5.0))
-    addChannel!(net, channel)
-    @test (net.channels[2] == channel)
-    newAdj = net.adjList
-    @test (oldAdj == newAdj)
 
     # Test addChannel! throws error when src or dst doesn't exist
     channel = BasicChannel(100, 200)
@@ -119,7 +98,6 @@ using StructEquality
     edgeList = [(1,2),(2,3)]
     addChannel!(net, edgeList)
     @test( length(net.channels) == 2 && net.numChannels == 2)
-    @test( 2 in net.adjList[3] && 3 in net.adjList[2])
     @test all(channel.directed == false for channel in net.channels)
 
     # Test addChannel! for list of channels

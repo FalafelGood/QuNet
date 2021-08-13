@@ -51,8 +51,7 @@ export
 QObject, QNode, QChannel, QNetwork,
 
 # QNetwork.jl
-addNode!, hasChannel, getChannelIdx, getChannel, addChannel!,
-convertNet!,
+addNode!, getChannelIdx, getChannel, addChannel!,
 
 # # Costs.jl
 Costs, halfCost, dE_to_E, E_to_dE, dF_to_F, F_to_dF,
