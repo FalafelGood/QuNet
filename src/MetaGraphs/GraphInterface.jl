@@ -17,23 +17,6 @@ function mapNodeToVert!(mdg::MetaDiGraph, nodeid::Int, v::Int)
     (get_prop(mdg, :nodeToVert))[nodeid] = v
 end
 
-# TODO: Needed?
-# """
-# Get the index of a graph vertex from the :qid of the network node.
-#
-# Recall that if a node in the network has a cost then that cost is represented
-# by a directed edge that joins a source to a sink where
-# :qid[source] = -:qid[sink]
-#
-# If issrc is set to false, this function returns the index corresponding to the
-# sink.
-# """
-# function g_index(mdg::MetaDiGraph, graphidx::Int; issrc = true)
-#     if issrc == false
-#         graphidx = -graphidx
-#     end
-#     return mdg.metaindex[:qid][graphidx]
-# end
 
 """
 Given a QNode's id, get the vertex corresponding to it. If no vertex exists,
@@ -46,6 +29,7 @@ function g_getVertex(mdg::MetaDiGraph, nodeid::Int)
         return 0
     end
 end
+
 
 """
 If a Qnode has a cost, this function returns the vertex corresponding to the cost.
@@ -63,6 +47,7 @@ function g_CostVertex(mdg::MetaDiGraph, nodeid::Int)
     return v
 end
 
+
 """
 Given a vertex in the graph, get the QNode corresponding to it.
 If the vertex does not correspond to a QNode, return 0. Else if the vertex
@@ -76,6 +61,7 @@ function g_getNode(mdg::MetaDiGraph, v::Int)
     end
 end
 
+
 """
 Add a vertex to the MetaDiGraph and instantiate the default properties from
 the vertexProps dictionary.
@@ -87,6 +73,7 @@ function g_addVertex!(g::AbstractMetaGraph)
     return idx
 end
 
+
 function g_addVertex!(g::AbstractMetaGraph, d::Dict)
     add_vertex!(g)
     idx = nv(g)
@@ -95,6 +82,7 @@ function g_addVertex!(g::AbstractMetaGraph, d::Dict)
     return idx
 end
 
+
 function g_addVertex!(g::AbstractMetaGraph, s::Symbol, v)
     add_vertex!(g)
     idx = nv(g)
@@ -102,6 +90,7 @@ function g_addVertex!(g::AbstractMetaGraph, s::Symbol, v)
     set_prop!(g, nv(g), s, v)
     return idx
 end
+
 
 """
 Add an edge to the MetaDiGraph and instantiate the default properties from
@@ -191,6 +180,7 @@ function g_pathCosts(mdg::MetaDiGraph, path::Union{Vector{Tuple{Int, Int}}, Vect
     return pcosts
 end
 
+
 """
 Find the shortest path in terms of the specified cost field. Returns the network
 path along with the associated costs.
@@ -223,6 +213,7 @@ function g_shortestPath(mdg::MetaDiGraph, src::Int, dst::Int, cost::String)
     pcosts = g_pathCosts(mdg, path)
     return path, pcosts
 end
+
 
 """
 Return a graph with inactive channels removed

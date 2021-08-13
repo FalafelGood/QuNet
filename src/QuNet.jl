@@ -43,7 +43,7 @@ include("MetaGraphs/NetInterface.jl")
 include("MetaGraphs/GraphInterface.jl")
 include("MetaGraphs/NetConversion.jl")
 include("Generators.jl")
-include("Utilities.jl")
+include("Purification.jl")
 include("MultiPath.jl")
 
 export
