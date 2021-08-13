@@ -79,7 +79,7 @@ mutable struct FibreChannel <: StaticChannel
     function FibreChannel(src::QNode, dst::QNode)
         length = cartDistance(src, dst)
         costs = fibreCosts(length)
-        newChannel = new(src.id, dst.id, length, costs, 1, true, false)
+        newChannel = new(src.qid, dst.qid, length, costs, 1, true, false)
         return newChannel
     end
 end
@@ -107,7 +107,7 @@ mutable struct AirChannel <: DynamicChannel
     function AirChannel(src::QNode, dst::QNode)
         length = cartDistance(src, dst)
         costs = QuNet.airCosts(src, dst)
-        newChannel = new(src.id, dst.id, length, costs, 1, true, false)
+        newChannel = new(src.qid, dst.qid, length, costs, 1, true, false)
         return newChannel
     end
 end

@@ -74,6 +74,50 @@ function n_setChannelCosts(mdg, srcNode::Int, dstNode::Int, chanVert::Int, costs
     end
 end
 
+"""
+Fetches the channel between srcNode and dstNode provided that one unique channel
+exists between them. If not, this function throws an error
+"""
+function n_uniqueChannel(mdg::MetaDiGraph, srcNode::Int, dstNode::Int)
+    channels = n_getChannels(mdg, srcNode, dstNode)
+    if length(channels) != 1
+        @error("More than one (or 0) channels found in n_uniqueChannel")
+    end
+    return channels[1]
+end
+
+"""
+Returns a list of tuples representing a vertex path in the network provided
+that each channel is unique. If not, this function throws an error.
+"""
+function n_uniqueVertexPath(mdg::MetaDiGraph, path::Vector{Tuple{Int, Int}})
+    vertPath = []
+    for step in path
+        srcNode = step[1]
+        dstNode = step[2]
+        chanVert = n_uniqueChannel(mdg, srcNode, dstNode)
+        srcVert = g_getVertex(mdg, srcNode)
+        push!(vertPath, srcVert)
+        if get_prop(mdg, srcVert, :hasCost) == true
+            costVert = g_getVertex(mdg, -srcNode)
+            push!(vertPath, srcVert)
+        end
+        push!(vertPath, chanVert)
+    end
+    lastNode = (last(path))[2]
+    lastVert = g_getVertex(mdg, lastNode)
+    push!(vertPath, lastVert)
+    if get_prop(mdg, lastVert, :hasCost) == true
+        costVert = g_getVertex(mdg, -lastVert)
+        push!(vertPath, costVert)
+    end
+    # Convert vertPath to list of tuples
+    tuplePath = Vector{Tuple{Int,Int}}()
+    for i in 1:length(vertPath)-1
+        push!(tuplePath, (vertPath[i], vertPath[i+1]))
+    end
+    return tuplePath
+end
 
 """
 Get a list of channel vertices between two nodes of the network. Return an empty

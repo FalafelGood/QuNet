@@ -72,12 +72,13 @@ BasicNode, CartCoords, CartNode, CartVelocity, CartSatNode,
 MetaDiGraph,
 
 # NetInterface.jl
-n_hasNode, n_hasChannel, n_getChannels, n_remChannel!, n_remAllChannels!, n_vertexToNetPath,
-n_removeVertexPath!, n_remShortestPath!, n_shortestPath, n_channelCosts, n_setChannelCosts,
+n_hasNode, n_hasChannel, n_uniqueChannel, n_getChannels, n_remChannel!, n_remAllChannels!,
+n_vertexToNetPath, n_removeVertexPath!, n_remShortestPath!, n_shortestPath, n_channelCosts,
+n_setChannelCosts,
 
 # Graph interface
 g_getNode, g_addVertex!, g_addVertex!, g_addEdge!, g_hasEdge, g_remEdge!, g_getProp,
-g_edgeCosts, g_pathCosts, g_shortestPath, g_filterInactiveEdges,
+g_edgeCosts, g_pathCosts, g_shortestPath, g_filterInactiveEdges, g_getVertex,
 g_filterInactiveVertices,
 
 # Percolation.jl

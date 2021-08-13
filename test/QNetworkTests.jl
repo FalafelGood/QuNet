@@ -21,7 +21,7 @@ using StructEquality
     @test net.numNodes == 10
     @test all(typeof(n) == BasicNode for n in net.nodes)
     # Check that id is properly initialised
-    @test all(n.id == idx for (idx, n) in enumerate(net.nodes))
+    @test all(n.qid == idx for (idx, n) in enumerate(net.nodes))
 
     # Test adjacency list init
     @test length(net.adjList) == net.numNodes
@@ -31,7 +31,7 @@ using StructEquality
     @test length(net.nodes) == 20
     @test all(typeof(n) == BasicNode for n in net.nodes)
     # Check that id is still initialised right
-    @test all(n.id == idx for (idx, n) in enumerate(net.nodes))
+    @test all(n.qid == idx for (idx, n) in enumerate(net.nodes))
 
     # Test addNode replaces existing node in network
     node = BasicNode(5, Costs(1.0, 2.0))

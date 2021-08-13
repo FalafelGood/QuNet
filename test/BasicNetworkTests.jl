@@ -21,7 +21,7 @@ using StructEquality
     @test net.numNodes == 10
     @test all(typeof(n) == BasicNode for n in net.nodes)
     # Check that id is properly initialised
-    @test all(n.id == idx for (idx, n) in enumerate(net.nodes))
+    @test all(n.qid == idx for (idx, n) in enumerate(net.nodes))
 
     # Test adjacency list init
     @test length(net.adjList) == net.numNodes

@@ -65,5 +65,6 @@ using Test
 
     # Test g_shortestPath
     # TODO: Rewrite g_filterInactiveChannels
+    # TODO: Rewrite g_filterInactiveVertices
     # Test g_filterInactiveVertices
 end
