@@ -216,44 +216,28 @@ end
 
 
 """
-Return a graph with inactive channels removed
+Remove the inactive channels of a graph
 """
-function g_filterInactiveEdges(mdg::MetaDiGraph)
-    # TODO update
-    # Filter out active edges
-    activeEdges = collect(filter_edges(mdg, :active, true))
-    # Filter out active edge properties
-    newEprops = Dict(activeKey => mdg.eprops[activeKey] for activeKey in activeEdges)
-    sdg = SimpleDiGraph(activeEdges)
-
-    newMeta = MetaDiGraph(sdg, mdg.vprops, newEprops, mdg.gprops,
-    mdg.weightfield, mdg.defaultweight, mdg.metaindex, mdg.indices)
-    return newMeta
+function g_removeInactiveChannels!(mdg::MetaDiGraph)
+    function filterCondition(mdg, v)
+        return get_prop(mdg, v, :isChannel) && !get_prop(mdg, v, :active)
+    end
+    inactiveChannels = collect(filter_vertices(mdg, filterCondition))
+    for chanVert in inactiveChannels
+        rem_vertex!(mdg, chanVert)
+    end
 end
 
 
 """
-Return a graph with channels in neighborhoods of inactive nodes removed.
-Edges are much faster to filter out than nodes since none of the
+Remove the inactive Nodes of a graph
 """
-function g_filterInactiveVertices(mdg::MetaDiGraph)
-    # TODO update
-    """
-    Filter edges that are not connected to an innactive node
-    """
-    function edgeCondition(g, e)
-        if (get_prop(g, e.src, :active) == true && get_prop(g, e.dst, :active) == true)
-            return true
-        end
-        return false
+function g_filterInactiveNodes(mdg::MetaDiGraph)
+    function filterCondition(mdg, v)
+        return !get_prop(mdg, v, :isChannel) && !get_prop(g, v, :active)
     end
-
-    activeEdges = collect(filter_edges(mdg, edgeCondition))
-    # Filter out active edge properties
-    newEprops = Dict(activeKey => mdg.eprops[activeKey] for activeKey in activeEdges)
-    # Make new MetaDiGraph
-    sdg = SimpleDiGraph(activeEdges)
-    newMeta = MetaDiGraph(sdg, mdg.vprops, newEprops, mdg.gprops,
-    mdg.weightfield, mdg.defaultweight, mdg.metaindex, mdg.indices)
-    return newMeta
+    inactiveNodes = collect(filter_vertices(mdg, filterCondition))
+    for nodeVert in inactiveNodes
+        rem_vertex!(mdg, nodeVert)
+    end
 end
