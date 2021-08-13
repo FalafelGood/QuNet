@@ -282,6 +282,26 @@ function n_removeVertexPath!(mdg::MetaDiGraph, path::Union{Vector{Tuple{Int, Int
     return
 end
 
+"""
+Return the maximum capacity allowed by a given path
+"""
+function n_pathCapacity(mdg::MetaDiGraph, vertexPath::Union{Vector{Tuple{Int, Int}}, Vector{Edge{Int}}})
+    pathCap = 0
+    if typeof(vertexPath) == Vector{Tuple{Int, Int}}
+        vertexPath = QuNet.tuplesToEdges(vertexPath)
+    end
+    for edge in vertexPath
+        if get_prop(msg, edge.src, :isChannel)
+            cap = get_prop(mdg, edge.src, :capacity)
+            if pathCap > cap; pathCap = cap end
+        end
+    end
+    lastVert = (last(vertexPath)).dst
+    cap = get_prop(mdg, edge.src, :capacity)
+    if pathCap > cap; pathCap = cap end
+    return pathCap
+end
+
 
 """
 Find the shortest path in terms of the specified cost field. Returns the network

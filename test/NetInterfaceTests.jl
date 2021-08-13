@@ -35,6 +35,16 @@ using Test
     convertNet!(net)
     @test QuNet.n_hasChannel(net.graph, 2, 1, true) == false
 
+    # Test n_channelCosts
+    chan = n_uniqueChannel(mdg, 1, 2)
+    @test n_channelCosts(mdg, 1, 2, chan) == Costs(0.,0.)
+
+    # Test n_setChannelCosts
+    n_setChannelCosts(mdg, 1, 2, chan, Costs(5.,5.))
+    @test n_channelCosts(mdg, 1, 2, chan) == Costs(5., 5.)
+
+    # Test n_uniqueChannel errors when more than one channel is found
+
     # Test n_getChannels
     net = BasicNetwork(2)
     addChannel!(net, 1, 2, Costs(1.,1.))
@@ -170,7 +180,7 @@ using Test
 
     # Test property was correctly reset
     @test n_channelCosts(mdg, 1, 2, 3) == Costs(1.,1.)
-    
+
     # """
     # Make a partially disabled network to test filtering for inactive
     # edges and inactive vertices

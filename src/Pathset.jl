@@ -49,7 +49,10 @@ are purified together.
 end
 
 """
-Remove the pathset from the graph
+Remove the pathset from the graph.
+
+# TODO: In the case where a channel is exhausted beyond capacity, the pathset
+will have to be modified so we know what the new frequencies are.
 """
 function remPathset(mdg::MetaDiGraph, pathset::Pathset)
     function tuplesToEdges(path)

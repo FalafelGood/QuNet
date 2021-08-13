@@ -1,6 +1,7 @@
 using QuNet
 using Test
 using StructEquality
+using LightGraphs
 
 @def_structequal Costs
 @def_structequal BasicNode

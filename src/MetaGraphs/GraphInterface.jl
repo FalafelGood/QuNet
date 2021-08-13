@@ -232,7 +232,7 @@ end
 """
 Remove the inactive Nodes of a graph
 """
-function g_filterInactiveNodes(mdg::MetaDiGraph)
+function g_removeInactiveNodes(mdg::MetaDiGraph)
     function filterCondition(mdg, v)
         return !get_prop(mdg, v, :isChannel) && !get_prop(g, v, :active)
     end

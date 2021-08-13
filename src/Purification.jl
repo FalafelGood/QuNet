@@ -65,6 +65,35 @@ function addPurifyChannel(mdg::MetaDiGraph, pathset::Pathset, purCosts::Costs)
     c_addQChannel(mdg, purChannel)
 end
 
+"""
+Checks to see if an identical purification has already been done before
+so the purification channel isn't duplicated
+"""
+function handleRepeatPurification(mdg::MetaDiGraph, pathset::Pathset)
+    isRepeat = false
+    repeatChan = nothing
+    srcVert = pathset.src
+    dstVert = pathset.dst
+    commonChannels = common_neighbors(srcVert, dstVert)
+    for chan in commonChannels
+        if get_prop(mdg, chan, :type) == PurifiedChannel
+            if get_prop(mdg, chan, :pathset) == pathset
+                isRepeat = true
+                repeatChan = chan
+            end
+        end
+    end
+    if isRepeat == false
+        return false
+    end
+    chancap = get_prop(mdg, chan, :capacity)
+    set_prop!(mdg, chan, :capacity, chancap + 1)
+    # WARNING: I see a potential bug here where if the path purification
+    # exhausts a channel beyond its capacity then this method will still +1.
+    # I'll need to figure out how to handle this in remPathset
+    return true
+end
+
 # function purify_PBS(F1::Float64,F2::Float64)::(Float64,Float64)
 #     F = F1*F1 / (F1*F2 + (1-F1)(1-F2))
 #     P = 1

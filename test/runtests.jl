@@ -7,12 +7,15 @@ using Test
 
 const testdir = dirname(@__FILE__)
 
-tests = ["ChannelTests",
+tests = ["BasicNetworkTests",
+        "ChannelTests",
+        "CostsTests",
+        "GraphInterfaceTests",
         "NetInterfaceTests",
-        "QNetworkTests",
-        "BasicNetworkTests",
         "NodeTests",
         "PathsetTests",
+        "PurificationTests",
+        "QNetworkTests",
         ]
 
 @testset "QuNet" begin
