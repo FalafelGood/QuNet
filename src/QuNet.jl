@@ -32,6 +32,7 @@ abstract type QNetwork <: QObject end
 include("Costs.jl")
 include("QNetwork.jl")
 include("BasicNetwork.jl")
+include("Pathset.jl")
 include("TemporalGraphs.jl")
 include("Node.jl")
 include("Channel.jl")
@@ -42,7 +43,6 @@ include("MetaGraphs/NetInterface.jl")
 include("MetaGraphs/GraphInterface.jl")
 include("MetaGraphs/NetConversion.jl")
 include("Generators.jl")
-include("Pathset.jl")
 include("Utilities.jl")
 include("MultiPath.jl")
 
@@ -61,7 +61,7 @@ Costs, halfCost, dE_to_E, E_to_dE, dF_to_F, F_to_dF,
 BasicNetwork,
 
 # # Channel.jl
-BasicChannel, FibreChannel, AirChannel,
+BasicChannel, PurifiedChannel, FibreChannel, AirChannel,
 
 # DynamicNetwork.jl
 

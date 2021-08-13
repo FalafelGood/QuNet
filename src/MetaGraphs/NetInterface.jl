@@ -100,7 +100,7 @@ function n_uniqueVertexPath(mdg::MetaDiGraph, path::Vector{Tuple{Int, Int}})
         push!(vertPath, srcVert)
         if get_prop(mdg, srcVert, :hasCost) == true
             costVert = g_getVertex(mdg, -srcNode)
-            push!(vertPath, srcVert)
+            push!(vertPath, costVert)
         end
         push!(vertPath, chanVert)
     end
@@ -108,7 +108,7 @@ function n_uniqueVertexPath(mdg::MetaDiGraph, path::Vector{Tuple{Int, Int}})
     lastVert = g_getVertex(mdg, lastNode)
     push!(vertPath, lastVert)
     if get_prop(mdg, lastVert, :hasCost) == true
-        costVert = g_getVertex(mdg, -lastVert)
+        costVert = g_getVertex(mdg, -lastNode)
         push!(vertPath, costVert)
     end
     # Convert vertPath to list of tuples
@@ -123,15 +123,15 @@ end
 Get a list of channel vertices between two nodes of the network. Return an empty
 list if no path is found.
 """
-function n_getChannels(mdg::MetaDiGraph, srcid::Int, dstid::Int)
+function n_getChannels(mdg::MetaDiGraph, srcNode::Int, dstNode::Int)
     channels = []
-    if n_hasNode(mdg, srcid) == false || n_hasNode(mdg, dstid) == false
+    if n_hasNode(mdg, srcNode) == false || n_hasNode(mdg, dstNode) == false
         return []
     end
-    # Use cost node if srcid has cost
-    src = g_CostVertex(mdg, srcid)
-    dst = g_getVertex(mdg, dstid)
-    neighbors = common_neighbors(mdg, src, dst)
+    # Use cost node if srcNode has cost
+    srcVert = g_CostVertex(mdg, srcNode)
+    dstVert = g_CostVertex(mdg, dstNode)
+    neighbors = common_neighbors(mdg, srcVert, dstVert)
     for n in neighbors
         if get_prop(mdg, n, :isChannel)
             push!(channels, n)

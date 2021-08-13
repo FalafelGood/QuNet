@@ -136,7 +136,8 @@ function setChanAttrs(mdg, v, qchannel)
 end
 
 """
-Add a QChannel to the Network graph
+Add a QChannel to the Network graph and return the vertex corresponding
+to the channel
 """
 function c_addQChannel(mdg::MetaDiGraph, qchannel::QChannel)
     middle = g_addVertex!(mdg)
@@ -178,6 +179,7 @@ function c_addQChannel(mdg::MetaDiGraph, qchannel::QChannel)
             setEdgeCosts(mdg, qchannel, middle, src)
         end
     end
+    return middle
 end
 
 

@@ -51,8 +51,16 @@ end
 """
 Remove the pathset from the graph
 """
-function remPathset(net::BasicNetwork, pathset::Pathset)
+function remPathset(mdg::MetaDiGraph, pathset::Pathset)
+    function tuplesToEdges(path)
+        edgepath = Vector{Edge{Int}}()
+        for step in path
+            push!(edgepath, Edge(step[1], step[2]))
+        end
+        return edgepath
+    end
     for (idx, path) in enumerate(pathset.paths)
-        n_removePath!(net.graph, path, remHowMany = pathset.freqs[idx])
+        path = tuplesToEdges(path)
+        n_removeVertexPath!(mdg, path, remHowMany = pathset.freqs[idx])
     end
 end

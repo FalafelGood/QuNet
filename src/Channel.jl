@@ -32,6 +32,25 @@ mutable struct BasicChannel <: StaticChannel
 end
 
 """
+Channel class for multiple channels purified together
+"""
+mutable struct PurifiedChannel <: StaticChannel
+    src::Int64
+    dst::Int64
+    costs::Costs
+    capacity::Int64
+    active::Bool
+    directed::Bool
+    pathset::Pathset
+
+    function PurifiedChannel(src::Int, dst::Int, purCosts::Costs, pathset::Pathset)
+        newChannel = new(src, dst, purCosts, 1, true, false, pathset)
+        return newChannel
+    end
+end
+
+
+"""
 Cartesian distance between two nodes
 """
 function cartDistance(src::QNode, dst::QNode)::Float64
