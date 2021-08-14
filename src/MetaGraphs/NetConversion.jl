@@ -143,40 +143,40 @@ function c_addQChannel(mdg::MetaDiGraph, qchannel::QChannel)
     middle = g_addVertex!(mdg)
     setChanAttrs(mdg, middle, qchannel)
 
-    src = g_getVertex(mdg, qchannel.src)
-    dst = g_getVertex(mdg, qchannel.dst)
+    srcVert = g_getVertex(mdg, qchannel.src)
+    dstVert = g_getVertex(mdg, qchannel.dst)
     srcHasCost = get_prop(mdg, qchannel.src, :hasCost)
     dstHasCost = get_prop(mdg, qchannel.dst, :hasCost)
 
     if srcHasCost == true
         # Edge (-src, dst)
-        minus_src = g_getVertex(mdg, -qchannel.src)
-        add_edge!(mdg, minus_src, middle)
-        add_edge!(mdg, middle, dst)
-        setEdgeCosts(mdg, qchannel, minus_src, middle)
-        setEdgeCosts(mdg, qchannel, middle, dst)
+        minus_srcVert = g_getVertex(mdg, -qchannel.src)
+        add_edge!(mdg, minus_srcVert, middle)
+        add_edge!(mdg, middle, dstVert)
+        setEdgeCosts(mdg, qchannel, minus_srcVert, middle)
+        setEdgeCosts(mdg, qchannel, middle, dstVert)
     else
         # Edge(src, dst)
-        add_edge!(mdg, src, middle)
-        add_edge!(mdg, middle, dst)
-        setEdgeCosts(mdg, qchannel, src, middle)
-        setEdgeCosts(mdg, qchannel, middle, dst)
+        add_edge!(mdg, srcVert, middle)
+        add_edge!(mdg, middle, dstVert)
+        setEdgeCosts(mdg, qchannel, srcVert, middle)
+        setEdgeCosts(mdg, qchannel, middle, dstVert)
     end
 
     if qchannel.directed == false
         if dstHasCost == true
             # Edge(-dst, src)
-            minus_dst = g_getVertex(mdg, -qchannel.dst)
-            add_edge!(mdg, minus_dst, middle)
-            add_edge!(mdg, middle, src)
-            setEdgeCosts(mdg, qchannel, minus_dst, middle)
-            setEdgeCosts(mdg, qchannel, middle, src)
+            minus_dstVert = g_getVertex(mdg, -qchannel.dst)
+            add_edge!(mdg, minus_dstVert, middle)
+            add_edge!(mdg, middle, srcVert)
+            setEdgeCosts(mdg, qchannel, minus_dstVert, middle)
+            setEdgeCosts(mdg, qchannel, middle, srcVert)
         else
             # Edge(dst, src)
-            add_edge!(mdg, dst, middle)
-            add_edge!(mdg, middle, src)
-            setEdgeCosts(mdg, qchannel, dst, middle)
-            setEdgeCosts(mdg, qchannel, middle, src)
+            add_edge!(mdg, dstVert, middle)
+            add_edge!(mdg, middle, srcVert)
+            setEdgeCosts(mdg, qchannel, dstVert, middle)
+            setEdgeCosts(mdg, qchannel, middle, srcVert)
         end
     end
     return middle

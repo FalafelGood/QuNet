@@ -46,11 +46,19 @@ end
 Reduce the graph associated with the QuNetwork by performing a purification
 over a pathset
 """
-function purify(mdg::MetaDiGraph, pathset::Pathset; addChannel = false)
+function purify(mdg::MetaDiGraph, pathset::Pathset; addChannel = false, bidirectional = false)
     purCosts = purifyCosts(mdg, pathset)
     remPathset(mdg, pathset)
     if addChannel == true
-        addPurifyChannel(mdg, pathset, purCosts)
+        isRepeat = handleRepeatPurification(mdg, pathset)
+        if isRepeat == false
+            addPurifyChannel(mdg, pathset, purCosts)
+        end
+    end
+    if bidirectional == true
+        rps = QuNet.reversePathset(pathset)
+        revPurCosts = purify(mdg, rps, addChannel=addChannel, bidirectional=false)
+        return purCosts, revPurCosts
     end
     return purCosts
 end
@@ -61,7 +69,9 @@ the purified costs and information about the Pathset.
 """
 function addPurifyChannel(mdg::MetaDiGraph, pathset::Pathset, purCosts::Costs)
     # Add a channel to the network
-    purChannel = PurifiedChannel(pathset.src, pathset.dst, purCosts, pathset)
+    srcNode = abs(g_getNode(mdg, pathset.src))
+    dstNode = abs(g_getNode(mdg, pathset.dst))
+    purChannel = PurifiedChannel(srcNode, dstNode, purCosts, pathset)
     c_addQChannel(mdg, purChannel)
 end
 
@@ -72,9 +82,9 @@ so the purification channel isn't duplicated
 function handleRepeatPurification(mdg::MetaDiGraph, pathset::Pathset)
     isRepeat = false
     repeatChan = nothing
-    srcVert = pathset.src
-    dstVert = pathset.dst
-    commonChannels = common_neighbors(srcVert, dstVert)
+    srcVert, dstVert = QuNet.channelEndsFromVertexPath(mdg, pathset.src, pathset.dst)
+    # commonChannels = common_neighbors(mdg, srcVert, dstVert)
+    commonChannels = intersect(all_neighbors(mdg, srcVert), all_neighbors(mdg, dstVert))
     for chan in commonChannels
         if get_prop(mdg, chan, :type) == PurifiedChannel
             if get_prop(mdg, chan, :pathset) == pathset
@@ -88,9 +98,6 @@ function handleRepeatPurification(mdg::MetaDiGraph, pathset::Pathset)
     end
     chancap = get_prop(mdg, chan, :capacity)
     set_prop!(mdg, chan, :capacity, chancap + 1)
-    # WARNING: I see a potential bug here where if the path purification
-    # exhausts a channel beyond its capacity then this method will still +1.
-    # I'll need to figure out how to handle this in remPathset
     return true
 end
 

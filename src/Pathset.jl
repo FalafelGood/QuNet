@@ -51,8 +51,9 @@ end
 """
 Remove the pathset from the graph.
 
-# TODO: In the case where a channel is exhausted beyond capacity, the pathset
-will have to be modified so we know what the new frequencies are.
+If the frequency of a path in the pathset exceeds the capacity of the path,
+this function sets the frequency to this maximum capacity and removes that
+amount of paths instead.
 """
 function remPathset(mdg::MetaDiGraph, pathset::Pathset)
     function tuplesToEdges(path)
@@ -64,6 +65,34 @@ function remPathset(mdg::MetaDiGraph, pathset::Pathset)
     end
     for (idx, path) in enumerate(pathset.paths)
         path = tuplesToEdges(path)
+        # Don't remove any more paths then are availible
+        pathcap = n_pathCapacity(mdg, path)
+        if pathcap < pathset.freqs[idx]
+            pathset.freqs[idx] = pathcap
+        end
         n_removeVertexPath!(mdg, path, remHowMany = pathset.freqs[idx])
     end
+end
+
+"""
+Make a reversed instance of a given Pathset
+"""
+function reversePathset(pathset::Pathset)
+    # """
+    # Return true if a tuple corresponds to a node cost edge
+    # """
+    # function isNodeCost(mdg::MetaDiGraph, tup)
+    #     if has_prop(mdg, tup[1], tup[2], :isNodeCost) == false
+    #         return false
+    #     end
+    #     return get_prop(mdg, tup[1], tup[2], :isNodeCost)
+    # end
+    # isNodeCost(mdg, i) ? i : reverse(i)
+    revPaths = Vector{Vector{Tuple{Int, Int}}}()
+    for path in pathset.paths
+        semireversed = [reverse(i) for i in path]
+        reversed = reverse(semireversed)
+        push!(revPaths, reversed)
+    end
+    return Pathset(revPaths, pathset.freqs)
 end

@@ -45,6 +45,7 @@ include("MetaGraphs/NetConversion.jl")
 include("Generators.jl")
 include("Purification.jl")
 include("MultiPath.jl")
+include("Utilities.jl")
 
 export
 # # Abstract Classes

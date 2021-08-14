@@ -13,4 +13,10 @@ using Test
     ps1 = QuNet.Pathset([path1, path2, path3, path4])
     ps2 = QuNet.Pathset([path4, path3, path2, path1])
     @test ps1 == ps2
+
+    # Test ReversePathset    
+    rps1 = QuNet.reversePathset(ps1)
+    @test rps1 != ps1
+    rrps1 = QuNet.reversePathset(rps1)
+    @test rrps1 == ps1
 end
