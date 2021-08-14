@@ -69,8 +69,8 @@ the purified costs and information about the Pathset.
 """
 function addPurifyChannel(mdg::MetaDiGraph, pathset::Pathset, purCosts::Costs)
     # Add a channel to the network
-    srcNode = abs(g_getNode(mdg, pathset.src))
-    dstNode = abs(g_getNode(mdg, pathset.dst))
+    srcNode = g_getNode(mdg, pathset.src)
+    dstNode = g_getNode(mdg, pathset.dst)
     purChannel = PurifiedChannel(srcNode, dstNode, purCosts, pathset)
     c_addQChannel(mdg, purChannel)
 end
@@ -82,8 +82,8 @@ so the purification channel isn't duplicated
 function handleRepeatPurification(mdg::MetaDiGraph, pathset::Pathset)
     isRepeat = false
     repeatChan = nothing
-    srcVert, dstVert = QuNet.channelEndsFromVertexPath(mdg, pathset.src, pathset.dst)
-    # commonChannels = common_neighbors(mdg, srcVert, dstVert)
+    srcVert = g_getVertex(mdg, pathset.src)
+    dstVert = g_getVertex(mdg, pathset.dst)
     commonChannels = intersect(all_neighbors(mdg, srcVert), all_neighbors(mdg, dstVert))
     for chan in commonChannels
         if get_prop(mdg, chan, :type) == PurifiedChannel

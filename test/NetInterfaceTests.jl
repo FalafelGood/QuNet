@@ -19,7 +19,7 @@ using Test
 
     # Test n_hasChannel when isdirected == false
     net = BasicNetwork()
-    addNode!(net, [Costs(1.,1.), Costs(1.,1.), Costs(1.1, 1.1)])
+    addNode!(net, 3)
     addChannel!(net, 1, 2)
     mdg = MetaDiGraph(net)
     @test QuNet.n_hasChannel(mdg, 1, 2) == true
@@ -44,6 +44,7 @@ using Test
     @test n_channelCosts(mdg, 1, 2, chan) == Costs(5., 5.)
 
     # Test n_uniqueChannel errors when more than one channel is found
+    # TODO:
 
     # Test n_getChannels
     net = BasicNetwork(2)
@@ -77,10 +78,10 @@ using Test
     # Test n_remChannel! for graph with node weights:
     # Make a network with node costs
     net = BasicNetwork()
-    addNode!(net, [Costs(1.0, 1.0), Costs(1.0, 1.0)])
+    addNode!(net, 2)
     addChannel!(net, [(1,2)], [Costs(1.0, 1.0)])
-    mdg = MetaDiGraph(net, true)
-    n_remChannel!(mdg, 1, 2, 5)
+    mdg = MetaDiGraph(net)
+    n_remChannel!(mdg, 1, 2, 3)
     @test n_hasChannel(mdg, 1, 2) == false
 
     # Test addCostPrefix!
@@ -104,14 +105,14 @@ using Test
     # Test n_vertexToNetPath
     # Make a network with node costs
     net = BasicNetwork()
-    addNode!(net, [Costs(1.0, 1.0), Costs(1.0, 1.0)])
+    addNode!(net, 2)
     addChannel!(net, [(1,2)], [Costs(1.0, 1.0)])
-    mdg = MetaDiGraph(net, true)
-    netpath = n_vertexToNetPath(mdg, [Edge(1,2), Edge(2,5), Edge(5,3), Edge(3,4)])
+    mdg = MetaDiGraph(net)
+    netpath = n_vertexToNetPath(mdg, [Edge(1,3), Edge(3,2)])
     @test netpath == [Edge(1,2)]
 
     # Test n_removeVertexPath!
-    n_removeVertexPath!(mdg, [Edge(1,2), Edge(2,5), Edge(5,3), Edge(3,4)])
+    n_removeVertexPath!(mdg, [Edge(1,3), Edge(3,2)])
     @test n_hasChannel(mdg, 1, 2) == false
 
     # Test g_edgeCosts for a channel edge (It should be half the cost)
@@ -133,42 +134,41 @@ using Test
     pcosts = g_pathCosts(mdg, elist)
     @test pcosts == Costs(3.0, 4.0)
 
-    # Test g_shortestPath with Node Weights for simple graph
+    # Test g_shortestPath
     net = BasicNetwork()
-    addNode!(net, Costs(1.0, 1.0))
-    addNode!(net, Costs(100.0, 100.0))
-    addNode!(net, Costs(2.0, 2.0))
-    addChannel!(net, Edge(1,2), Costs(0.0, 0.0))
+    addNode!(net, 3)
+    addChannel!(net, Edge(1,2), Costs(1.0, 1.0))
     addChannel!(net, Edge(1,3), Costs(5.0, 5.0))
-    addChannel!(net, Edge(2,3), Costs(0.0, 0.0))
-    mdg = MetaDiGraph(net, true)
+    addChannel!(net, Edge(2,3), Costs(1.0, 1.0))
+    mdg = MetaDiGraph(net)
     path, pcosts = n_shortestPath(mdg, 1, 3, "dE")
-    @test path[1] == Edge(1,3)
-    @test pcosts == Costs(8.0, 8.0)
+    @test path[1] == Edge(1,2)
+    @test pcosts == Costs(2.0, 2.0)
 
     # Test n_remShortestPath for previous network
     path, pcosts = n_remShortestPath!(mdg, 1, 3, "dE")
-    @test path == [Edge(1,3)]
-    path, pcosts = n_remShortestPath!(mdg, 1, 3, "dE")
     @test path == [Edge(1,2), Edge(2,3)]
+    path, pcosts = n_remShortestPath!(mdg, 1, 3, "dE")
+    @test path == [Edge(1,3)]
 
-    # Test g_shortestPath with Node weights for more complex graph
-    net = BasicNetwork()
-    costList = repeat([Costs(1.,1.)], 5)
-    addNode!(net, costList)
-    edgeList = [(1,2),(1,3),(1,4),(2,5),(3,5),(4,5)]
-    costList = [Costs(1.,1.), Costs(2.,2.), Costs(3., 3.),
-                Costs(1.,1.), Costs(2.,2.), Costs(3., 3.)]
-    addChannel!(net, edgeList, costList)
-    mdg = MetaDiGraph(net, true)
-    path, pcosts = n_shortestPath(mdg, 1, 5, "dF")
-    @test path == [Edge(1,2), Edge(2,5)]
-    @test pcosts == Costs(5., 5.)
-
-    # Test n_remShortestPath! for more complex graph
-    n_remShortestPath!(mdg, 1, 5, "dF")
-    @test QuNet.n_hasChannel(mdg, 1, 2) == false && QuNet.n_hasChannel(mdg, 2, 5) == false
-
+    # TODO:
+    # Test g_shortestPath with for more complex graph
+    # net = BasicNetwork()
+    # costList = repeat([Costs(1.,1.)], 5)
+    # addNode!(net, costList)
+    # edgeList = [(1,2),(1,3),(1,4),(2,5),(3,5),(4,5)]
+    # costList = [Costs(1.,1.), Costs(2.,2.), Costs(3., 3.),
+    #             Costs(1.,1.), Costs(2.,2.), Costs(3., 3.)]
+    # addChannel!(net, edgeList, costList)
+    # mdg = MetaDiGraph(net, true)
+    # path, pcosts = n_shortestPath(mdg, 1, 5, "dF")
+    # @test path == [Edge(1,2), Edge(2,5)]
+    # @test pcosts == Costs(5., 5.)
+    #
+    # # Test n_remShortestPath! for more complex graph
+    # n_remShortestPath!(mdg, 1, 5, "dF")
+    # @test QuNet.n_hasChannel(mdg, 1, 2) == false && QuNet.n_hasChannel(mdg, 2, 5) == false
+    #
     # Test g_shortestPath! for channels where :active == false
     net = BasicNetwork(2)
     addChannel!(net, 1, 2, Costs(1.0, 1.0))
@@ -181,4 +181,6 @@ using Test
 
     # Test property was correctly reset
     @test n_channelCosts(mdg, 1, 2, 3) == Costs(1.,1.)
+
+    # TODO: test n_uniqueVertexPath
 end

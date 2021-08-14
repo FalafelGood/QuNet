@@ -8,17 +8,11 @@ The default QNode object. Nothing special, but nothing unspecial either ;-)"
 mutable struct BasicNode <: StaticNode
     # Basic parameters
     qid::Int64
-    costs::Costs
     active::Bool
     has_memory::Bool
 
     function BasicNode(qid::Int64)
-        newNode = new(qid, Costs(0.0, 0.0), true, false)
-        return newNode
-    end
-
-    function BasicNode(qid::Int64, costs::Costs)
-        newNode = new(qid, costs, true, false)
+        newNode = new(qid, true, false)
         return newNode
     end
 end
@@ -41,18 +35,12 @@ Similar to BasicNode, but with an extra parameter for cartesian spatial coordina
 """
 mutable struct CartNode <: StaticNode
     qid::Int64
-    costs::Costs
     active::Bool
     has_memory::Bool
     coords::CartCoords
 
     function CartNode(qid::Int64, coords::CartCoords)
-        newNode = new(qid, Costs(0.0, 0.0), true, false, coords)
-        return newNode
-    end
-
-    function CartNode(qid::Int64, costs::Costs, coords::CartCoords)
-        newNode = new(qid, costs, true, false, coords)
+        newNode = new(qid, true, false, coords)
         return newNode
     end
 end
@@ -75,7 +63,6 @@ Satellite Node in Cartesian Coordinates
 """
 mutable struct CartSatNode <: DynamicNode
     qid::Int64
-    costs::Costs
     active::Bool
     has_memory::Bool
     coords::CartCoords
@@ -96,7 +83,7 @@ mutable struct CartSatNode <: DynamicNode
     end
 
     function CartSatNode(qid::Int64, coords::CartCoords, velocity::CartVelocity)
-        newNode = new(qid, Costs(0.0, 0.0), true, false, coords, velocity, 0.0, update!)
+        newNode = new(qid, true, false, coords, velocity, 0.0, update!)
         return newNode
     end
 end

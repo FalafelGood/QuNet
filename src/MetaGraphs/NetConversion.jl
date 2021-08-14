@@ -51,18 +51,6 @@ end
 
 """
 Add a QNode to the Network graph
-
-
-If a node has costs, this function splits the node in two; A "sink" and
-"spout" with a directed edge between them. Undirected channels that
-connect the node will also be split outside this function -- An incoming
-edge to the sink, an outgoing edge from the spout -- both with the same
-costs.
-
-A node that passes through this method is given the attribute hasCost for node
-cost, which is true if it has a cost and false otherwise. A node is a sink
-(or has no cost) if its :qid is positive. If the id is negative, then it's a
-spout that connects to the node with corresponding positive :qid.
 """
 function c_addQNode!(mdg::MetaDiGraph, qnode::QNode, nodeCosts::Bool=false)
     # Add vertex to graph with default metaproperties
@@ -70,38 +58,6 @@ function c_addQNode!(mdg::MetaDiGraph, qnode::QNode, nodeCosts::Bool=false)
     # set vertex props to be qnode fields
     setVertexAttrs(mdg, qnode, v)
     mapNodeToVert!(mdg, qnode.qid, v)
-    if nodeCosts == true && qnode.costs != Costs(0.,0.)
-        set_prop!(mdg, v, :hasCost, true)
-        addCostNode!(mdg, v, qnode)
-    end
-end
-
-
-"""
-Add cost to Node in MetaDiGraph
-"""
-function addCostNode!(mdg, v, qnode)::Nothing
-    # Add vertex to graph with default metaproperties
-    cost_v = g_addVertex!(mdg)
-    mapNodeToVert!(mdg, -qnode.qid, cost_v)
-
-    # Conncect directed edge between node and cost node
-    g_addEdge!(mdg, v, cost_v)
-    # Set properties for cost node
-    setVertexAttrs(mdg, qnode, cost_v)
-    set_prop!(mdg, cost_v, :qid, -qnode.qid)
-    set_prop!(mdg, cost_v, :hasCost, true)
-
-    # Set edge costs with node costs
-    edge = Edge(v, cost_v)
-    unpackStruct(mdg, edge, qnode.costs)
-
-    # NOTE: I don't think this commented code is necessary anymore
-    # Set edge attributes for :src and :dst and specify edge is node cost
-    # set_prop!(mdg, edge, :src, inIdx)
-    # set_prop!(mdg, edge, :dst, -inIdx)
-    set_prop!(mdg, edge, :isNodeCost, true)
-    return
 end
 
 
@@ -111,8 +67,6 @@ Set the costs of a directed edge corresponding to a qchannel.
 their usual value)
 """
 function setEdgeCosts(mdg, qchannel, src, dst)
-    # Specify this edge corresponds to a channel, not node cost
-    set_prop!(mdg, Edge(src, dst), :isNodeCost, false)
     unpackStruct(mdg, Edge(src, dst), halfCost(qchannel.costs))
 end
 
@@ -145,39 +99,19 @@ function c_addQChannel(mdg::MetaDiGraph, qchannel::QChannel)
 
     srcVert = g_getVertex(mdg, qchannel.src)
     dstVert = g_getVertex(mdg, qchannel.dst)
-    srcHasCost = get_prop(mdg, qchannel.src, :hasCost)
-    dstHasCost = get_prop(mdg, qchannel.dst, :hasCost)
 
-    if srcHasCost == true
-        # Edge (-src, dst)
-        minus_srcVert = g_getVertex(mdg, -qchannel.src)
-        add_edge!(mdg, minus_srcVert, middle)
-        add_edge!(mdg, middle, dstVert)
-        setEdgeCosts(mdg, qchannel, minus_srcVert, middle)
-        setEdgeCosts(mdg, qchannel, middle, dstVert)
-    else
-        # Edge(src, dst)
-        add_edge!(mdg, srcVert, middle)
-        add_edge!(mdg, middle, dstVert)
-        setEdgeCosts(mdg, qchannel, srcVert, middle)
-        setEdgeCosts(mdg, qchannel, middle, dstVert)
-    end
+    # Edge(src, dst)
+    add_edge!(mdg, srcVert, middle)
+    add_edge!(mdg, middle, dstVert)
+    setEdgeCosts(mdg, qchannel, srcVert, middle)
+    setEdgeCosts(mdg, qchannel, middle, dstVert)
 
     if qchannel.directed == false
-        if dstHasCost == true
-            # Edge(-dst, src)
-            minus_dstVert = g_getVertex(mdg, -qchannel.dst)
-            add_edge!(mdg, minus_dstVert, middle)
-            add_edge!(mdg, middle, srcVert)
-            setEdgeCosts(mdg, qchannel, minus_dstVert, middle)
-            setEdgeCosts(mdg, qchannel, middle, srcVert)
-        else
-            # Edge(dst, src)
-            add_edge!(mdg, dstVert, middle)
-            add_edge!(mdg, middle, srcVert)
-            setEdgeCosts(mdg, qchannel, dstVert, middle)
-            setEdgeCosts(mdg, qchannel, middle, srcVert)
-        end
+        # Edge(dst, src)
+        add_edge!(mdg, dstVert, middle)
+        add_edge!(mdg, middle, srcVert)
+        setEdgeCosts(mdg, qchannel, dstVert, middle)
+        setEdgeCosts(mdg, qchannel, middle, srcVert)
     end
     return middle
 end
@@ -188,7 +122,7 @@ Convert a QNetwork object to a directed MetaGraphs in Julia LightGraphs.
 Directed MetaGraphs are used over weighted di-graphs is because they are more
 performant at removing edges.
 """
-function MetaDiGraph(net::BasicNetwork, nodeCosts::Bool = false)::AbstractGraph
+function MetaDiGraph(net::BasicNetwork)::AbstractGraph
     ## MAIN ##
     mdg = MetaDiGraph()
 
@@ -196,11 +130,10 @@ function MetaDiGraph(net::BasicNetwork, nodeCosts::Bool = false)::AbstractGraph
     set_prop!(mdg, :nodeToVert, Dict{Int, Int}())
     set_prop!(mdg, :numNodes, net.numNodes)
     set_prop!(mdg, :numChannels, net.numChannels)
-    set_prop!(mdg, :nodeCosts, nodeCosts)
 
     # Add qnodes
     for qnode in net.nodes
-        c_addQNode!(mdg, qnode, nodeCosts)
+        c_addQNode!(mdg, qnode)
     end
 
     # Add channels

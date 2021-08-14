@@ -25,7 +25,7 @@ function n_hasChannel(mdg::MetaDiGraph, srcid::Int, dstid::Int, directed=false)
         return false
     end
     # Use cost node if srcid has cost
-    src = g_CostVertex(mdg, srcid)
+    src = g_getVertex(mdg, srcid)
     dst = g_getVertex(mdg, dstid)
     # Check if there's a node shared between src and dst
     neighbors = common_neighbors(mdg, src, dst)
@@ -98,19 +98,11 @@ function n_uniqueVertexPath(mdg::MetaDiGraph, path::Vector{Tuple{Int, Int}})
         chanVert = n_uniqueChannel(mdg, srcNode, dstNode)
         srcVert = g_getVertex(mdg, srcNode)
         push!(vertPath, srcVert)
-        if get_prop(mdg, srcVert, :hasCost) == true
-            costVert = g_getVertex(mdg, -srcNode)
-            push!(vertPath, costVert)
-        end
         push!(vertPath, chanVert)
     end
     lastNode = (last(path))[2]
     lastVert = g_getVertex(mdg, lastNode)
     push!(vertPath, lastVert)
-    if get_prop(mdg, lastVert, :hasCost) == true
-        costVert = g_getVertex(mdg, -lastNode)
-        push!(vertPath, costVert)
-    end
     # Convert vertPath to list of tuples
     tuplePath = Vector{Tuple{Int,Int}}()
     for i in 1:length(vertPath)-1
@@ -129,8 +121,8 @@ function n_getChannels(mdg::MetaDiGraph, srcNode::Int, dstNode::Int)
         return []
     end
     # Use cost node if srcNode has cost
-    srcVert = g_CostVertex(mdg, srcNode)
-    dstVert = g_CostVertex(mdg, dstNode)
+    srcVert = g_getVertex(mdg, srcNode)
+    dstVert = g_getVertex(mdg, dstNode)
     sn = all_neighbors(mdg, srcVert)
     dn = all_neighbors(mdg, dstVert)
     neighbors = intersect(sn, dn)
@@ -177,7 +169,7 @@ function n_remChannel!(mdg::MetaDiGraph, srcNode::Int, dstNode::Int, chanVert::I
         set_prop!(mdg, chanVert, fieldToModify, capacity)
     else
         # Remove the channel edges
-        srcVert = g_CostVertex(mdg, srcNode)
+        srcVert = g_getVertex(mdg, srcNode)
         dstVert = g_getVertex(mdg, dstNode)
         rem_edge!(mdg, srcVert, chanVert)
         rem_edge!(mdg, chanVert, dstVert)
@@ -242,9 +234,9 @@ function n_vertexToNetPath(mdg::MetaDiGraph, path::Vector{Edge{Int}})
             # The channel src is easy to infer since tail must connect to channel vertex
             srcchan = abs(get_prop(mdg, tail, :qid))
             # Two possible values for dstchan, head.src or head.dst
-            candidate = abs(get_prop(mdg, head, :src))
+            candidate = (get_prop(mdg, head, :src))
             if srcchan == candidate
-                dstchan = abs(get_prop(mdg, head, :dst))
+                dstchan = get_prop(mdg, head, :dst)
             else
                 dstchan = candidate
             end
@@ -315,7 +307,7 @@ path along with the associated costs.
 """
 function n_shortestPath(mdg::MetaDiGraph, srcNode::Int, dstNode::Int, cost::String)
     srcVert = g_getVertex(mdg, srcNode)
-    dstVert = g_CostVertex(mdg, dstNode)
+    dstVert = g_getVertex(mdg, dstNode)
     path, pcosts = g_shortestPath(mdg, srcVert, dstVert, cost)
     path = n_vertexToNetPath(mdg, path)
     return path, pcosts
@@ -327,9 +319,8 @@ Remove the shortest path in terms of the specified cost field. Returns the netwo
 path along with the associated costs.
 """
 function n_remShortestPath!(mdg::MetaDiGraph, srcNode::Int, dstNode::Int, cost::String)
-    # TODO
     srcVert = g_getVertex(mdg, srcNode)
-    dstVert = g_CostVertex(mdg, dstNode)
+    dstVert = g_getVertex(mdg, dstNode)
     @assert Symbol(cost) in fieldnames(Costs)
     cost = addCostPrefix(cost)
     weightfield!(mdg, Symbol(cost))

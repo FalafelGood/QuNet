@@ -78,16 +78,6 @@ end
 Make a reversed instance of a given Pathset
 """
 function reversePathset(pathset::Pathset)
-    # """
-    # Return true if a tuple corresponds to a node cost edge
-    # """
-    # function isNodeCost(mdg::MetaDiGraph, tup)
-    #     if has_prop(mdg, tup[1], tup[2], :isNodeCost) == false
-    #         return false
-    #     end
-    #     return get_prop(mdg, tup[1], tup[2], :isNodeCost)
-    # end
-    # isNodeCost(mdg, i) ? i : reverse(i)
     revPaths = Vector{Vector{Tuple{Int, Int}}}()
     for path in pathset.paths
         semireversed = [reverse(i) for i in path]

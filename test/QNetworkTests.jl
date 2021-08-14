@@ -30,31 +30,19 @@ using StructEquality
     @test all(n.qid == idx for (idx, n) in enumerate(net.nodes))
 
     # Test addNode replaces existing node in network
-    node = BasicNode(5, Costs(1.0, 2.0))
+    node = BasicNode(5)
     addNode!(net, node)
     @test (net.nodes[5] == node)
 
     # Test addNode with id > nv warns the user
-    node = BasicNode(100, Costs(1.0, 2.0))
+    node = BasicNode(100)
     @test_logs (:warn,) addNode!(net, node)
-
-    # Test addNode! for a cost
-    cost = Costs(2.0, 3.0)
-    addNode!(net, cost)
-    @test (last(net.nodes).costs == cost)
 
     # Test addNode! for a list of nodes
     net = BasicNetwork()
-    node1 = BasicNode(1, Costs(1.0, 2.0))
-    node2 = BasicNode(2, Costs(2.0, 3.0))
+    node1 = BasicNode(1)
+    node2 = BasicNode(2)
     addNode!(net, [node1, node2])
-    @test(net.nodes[1] == node1 && net.nodes[2] == node2)
-
-    # Test addNode! for a list of Costs
-    net = BasicNetwork()
-    cost1 = Costs(1.0, 2.0)
-    cost2 = Costs(2.0, 3.0)
-    addNode!(net, [cost1, cost2])
     @test(net.nodes[1] == node1 && net.nodes[2] == node2)
 
     # Test addChannel! between nodes one and two

@@ -7,8 +7,8 @@ graph level.
 
 # Global vertex and edge meta attributes. Each vertex and edge in the graph
 # will be initialised with these props by default:
-vertexProps = Dict(:hasCost => false, :isChannel => false)
-edgeProps = Dict(:isNodeCost => false, :isChannel => false)
+vertexProps = Dict(:isChannel => false)
+edgeProps = Dict(:isChannel => false)
 
 """
 Map a node in the QuNet to a vertex in the graph
@@ -28,23 +28,6 @@ function g_getVertex(mdg::MetaDiGraph, nodeid::Int)
     catch err
         return 0
     end
-end
-
-
-"""
-If a Qnode has a cost, this function returns the vertex corresponding to the cost.
-Otherwise, returns the vertex corresponding to the Qnode. If no node is found,
-throws an error
-"""
-function g_CostVertex(mdg::MetaDiGraph, nodeid::Int)
-    v = g_getVertex(mdg, nodeid)
-    if v == 0
-        error("Node not found in network")
-    end
-    if get_prop(mdg, :nodeCosts) == true && get_prop(mdg, v, :hasCost) == true
-        return g_getVertex(mdg, -nodeid)
-    end
-    return v
 end
 
 
