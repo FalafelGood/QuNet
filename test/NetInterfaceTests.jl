@@ -17,6 +17,17 @@ using Test
     # Test for node not in the graph
     @test QuNet.n_hasNode(mdg, 100) == false
 
+    # Test n_remNode()
+    net = BasicNetwork(4)
+    mdg = MetaDiGraph(net)
+    QuNet.n_remNode(mdg, 3)
+    @test g_getVertex(mdg, 1) == 1
+    @test g_getVertex(mdg, 2) == 2
+    @test g_getVertex(mdg, 4) == 3
+    # Test n_remNode() for the largest nodeid
+    QuNet.n_remNode(mdg, 4)
+    @test length(get_prop(mdg, :nodeToVert)) == 2
+
     # Test n_hasChannel when isdirected == false
     net = BasicNetwork()
     addNode!(net, 3)
@@ -83,6 +94,15 @@ using Test
     mdg = MetaDiGraph(net)
     n_remChannel!(mdg, 1, 2, 3)
     @test n_hasChannel(mdg, 1, 2) == false
+
+    # Test remChanVert
+    # TODO:
+    # net = BasicNetwork()
+    # addNode!(net, 2)
+    # addChannel!(net, 1,2)
+    # addChannel!(net, 1,2)
+    # mdg = MetaDiGraph(net)
+    # QuNet.remChanVert(mdg, 4)
 
     # Test addCostPrefix!
     cost = "test"

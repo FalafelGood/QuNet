@@ -18,6 +18,32 @@ end
 
 
 """
+Remove a QNode from the graph and reindex the :nodeToVert
+map accordingly
+"""
+function n_remNode(mdg::MetaDiGraph, nodeid::Int)
+    v = g_getVertex(mdg, nodeid)
+    if v == 0; error("Node not found in network") end
+    rem_vertex!(mdg, v)
+
+    nodeToVert = get_prop(mdg, :nodeToVert)
+    vMax = length(nodeToVert)
+    if v == vMax
+        delete!(nodeToVert, nodeid)
+        return
+    end
+    # Else, find entry corresponding with vMax.
+    # nodeToVert(nodeid) is the reverse lookup method of Bijection DataType
+    nodeMax = nodeToVert(vMax)
+    dummy = nodeToVert[nodeid]
+    delete!(nodeToVert, nodeid)
+    # Need to delete the bijection entry in order to modify it :\
+    delete!(nodeToVert, nodeMax)
+    nodeToVert[nodeMax] = dummy
+end
+
+
+"""
 Given the src and dst of a QChannel, determine if it exists in the MetaDiGraph
 """
 function n_hasChannel(mdg::MetaDiGraph, srcid::Int, dstid::Int, directed=false)
@@ -174,14 +200,30 @@ function n_remChannel!(mdg::MetaDiGraph, srcNode::Int, dstNode::Int, chanVert::I
         rem_edge!(mdg, srcVert, chanVert)
         rem_edge!(mdg, chanVert, dstVert)
     end
-    # TODO: This may be a troublemaker. Removing vertices may change indices!
-    # # If chanVert has no adjacent edges, remove chanVert too.
+    # TODO: This is a troublemaker. Removing vertices will change indices!
+    # If chanVert has no adjacent edges, remove chanVert too.
     # if degree(mdg, chanVert) == 0
     #     rem_vertex!(mdg, chanVert)
     # end
     return
 end
 
+"""
+Remove a vertex corresponding to a channel in the graph.
+"""
+function remChanVert(mdg::MetaDiGraph, chanVert)
+    # TODO
+    nodeToVert = get_prop(mdg, :nodeToVert)
+    vMax = length(nodeToVert)
+    rem_vertex!(mdg, chanVert)
+    if chanVert == vMax
+        return
+    end
+    if get_prop(mdg, nodeToVert[vMax], :isChannel) == false
+        # If it's not a channel then it's a node
+        println("Test")
+    end
+end
 
 """
 Reduce the channel capacity associated with all channels connecting src and dst

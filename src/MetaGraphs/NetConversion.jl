@@ -127,7 +127,7 @@ function MetaDiGraph(net::BasicNetwork)::AbstractGraph
     mdg = MetaDiGraph()
 
     # QNetwork properties
-    set_prop!(mdg, :nodeToVert, Dict{Int, Int}())
+    set_prop!(mdg, :nodeToVert, Bijection{Int, Int}())
     set_prop!(mdg, :numNodes, net.numNodes)
     set_prop!(mdg, :numChannels, net.numChannels)
 

@@ -14,7 +14,16 @@ edgeProps = Dict(:isChannel => false)
 Map a node in the QuNet to a vertex in the graph
 """
 function mapNodeToVert!(mdg::MetaDiGraph, nodeid::Int, v::Int)
-    (get_prop(mdg, :nodeToVert))[nodeid] = v
+    try
+        (get_prop(mdg, :nodeToVert))[nodeid] = v
+    catch err
+        try
+            delete!(get_prop(mdg, :nodeToVert), nodeid)
+            (get_prop(mdg, :nodeToVert))[nodeid] = v
+        catch err
+            error("Unable to map node to vertex")
+        end
+    end
 end
 
 
@@ -73,7 +82,6 @@ function g_addVertex!(g::AbstractMetaGraph, s::Symbol, v)
     set_prop!(g, nv(g), s, v)
     return idx
 end
-
 
 """
 Add an edge to the MetaDiGraph and instantiate the default properties from
