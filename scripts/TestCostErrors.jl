@@ -10,7 +10,7 @@ using Parameters
 
 
 # Params
-num_trials = 1::Int64
+num_trials = 100::Int64
 size = 10
 mpaths = 2
 
@@ -38,10 +38,30 @@ end
 theory_E = dB_to_P(ave_pathlength(size))
 theory_Z = dB_to_Z(ave_pathlength(size))
 
-theory_2E, theory_2Z = QuNet.purify_PBS(theory_E, theory_E, theory_Z, theory_Z)
+theory_E2 = dB_to_P(ave_pathlength(size))
+theory_Z2 = dB_to_Z(ave_pathlength(size))
+
+theory_2E, theory_2Z = QuNet.purify_PBS(theory_E, theory_E2, theory_Z, theory_Z2)
+
+# # Test purification on sample data set
+# raw_path_statistics = (12., 11., 9., 3., 3., 10., 8., 8., 5., 4., 3., 12., 4., 9., 10., 1., 13.,
+# 3., 8., 6., 3., 5., 10., 7., 8., 4., 10., 8., 3., 5., 8., 9., 8., 1., 5., 6., 10., 6., 6., 12., 12., 2., 10., 9.,
+# 5., 3., 10.)
+#
+# pur_statistics = []
+# for pathlength in raw_path_statistics
+#     P = dB_to_P(pathlength)
+#     Z = dB_to_Z(pathlength)
+#     push!(pur_statistics, QuNet.purify_PBS(P, P, Z, Z))
+# end
+# # println(pur_statistics)
+# pur_E_statistics = mean(collect(pur_statistics[i][1] for i in 1:length(pur_statistics)))
+# ave_Z_statistics = mean(collect(pur_statistics[i][2] for i in 1:length(pur_statistics)))
 
 println("")
 println("ave_E: $ave_E")
 println("theory_2E: $theory_2E")
 println("ave_Z: $ave_Z")
 println("theory_2Z: $theory_2Z")
+# println("pur_E_statistics: $ave_E_statistics")
+# println("pur_Z_statistics: $ave_Z_statistics")

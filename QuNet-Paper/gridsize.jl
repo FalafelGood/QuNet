@@ -18,7 +18,7 @@ max_size = 150::Int64
 # Increment constant
 inc = 5::Int64
 
-generate_new_data = true
+generate_new_data = true 
 if generate_new_data == true
 
     perf_data = []
@@ -75,6 +75,9 @@ P1e = [path_err[i][2]/num_pairs for i in 1:length(path_err)]
 P2e = [path_err[i][3]/num_pairs for i in 1:length(path_err)]
 P3e = [path_err[i][4]/num_pairs for i in 1:length(path_err)]
 P4e = [path_err[i][5]/num_pairs for i in 1:length(path_err)]
+
+# DEBUG
+println(path_err)
 
 # Plot
 plot(x, loss, ylims=(0,1), linewidth=2, yerror = loss_err, label=L"$\eta$",

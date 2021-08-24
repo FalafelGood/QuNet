@@ -287,7 +287,8 @@ function greedy_multi_path!(network::QuNet.TemporalGraph, purification_method,
         else
             purcost::Dict{Any, Any} = purification_method(userpaths)
             # Convert purcost from decibels to metric form
-            purcost = convert_costs(purcost)
+            # NOTE: Don't convert here.
+            # purcost = convert_costs(purcost)
             push!(pur_paths, purcost)
         end
     end

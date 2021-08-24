@@ -10,7 +10,7 @@ using JLD
 using Parameters
 
 function asymptotic_costs(gridsize::Int64)
-    N = 100
+    N = 1000
     G = GridNetwork(gridsize, gridsize)
     T = QuNet.TemporalGraph(G, 5, memory_costs = unit_costvector())
     p, dum1, dum2, dum3 = net_performance(T, N, 1, max_paths=4)
@@ -37,7 +37,7 @@ if generate_new_data == true
         println("Collecting for time depth $i")
         G = GridNetwork(grid_size, grid_size)
         # Create a Temporal Graph from G with timedepth i
-        T = QuNet.TemporalGraph(G, i, memory_costs = unit_costvector())
+        T = QuNet.TemporalGraph(G, i, memory_costs = zero_costvector())
         # Get random pairs of asynchronus nodes
         user_pairs = make_user_pairs(T, num_pairs)
         # Get data

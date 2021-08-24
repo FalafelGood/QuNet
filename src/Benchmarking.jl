@@ -43,6 +43,14 @@ function dict_err(dict_list)
     return averr
 end
 
+function percentage_error(main_dict, error_dict)
+    perc_dict = Dict()
+    for key in keys(main_dict)
+        perc_dict[key] = error_dict[key] / main_dict[key]
+    end
+    return perc_dict
+end
+
 
 # """Generate a list of user_pairs for a QNetwork"""
 # function make_user_pairs(net::QNetwork, num_pairs::Int)::Vector{Tuple{Int64, Int64}}
@@ -231,6 +239,8 @@ function net_performance(network::Union{QNetwork, QuNet.TemporalGraph},
     # Find the mean and standard error of ave_cost_data. Call this the performance
     performance = dict_average(ave_cost_data)
     performance_err = dict_err(ave_cost_data)
+    # Get percentage error from standard error:
+    perc_err = percentage_error(performance, performance_err)
 
     # Find the mean and standard error of the path usage statistics:
 
@@ -252,9 +262,16 @@ function net_performance(network::Union{QNetwork, QuNet.TemporalGraph},
 
     # Convert costs from decibelic to metric form
     metric_performance = convert_costs(performance)
-    metric_eff = convert_costs(performance_err)
 
-    return performance, performance_err, ave_pathcounts, ave_pathcounts_err
+    # Get metric error from percentage error:
+    metric_err = Dict()
+    for key in keys(perc_err)
+        metric_err[key] = perc_err[key] * metric_performance[key]
+    end
+
+    # return performance, performance_err, ave_pathcounts, ave_pathcounts_err
+    # # TODO:
+    return metric_performance, metric_err, ave_pathcounts, ave_pathcounts_err
 end
 
 

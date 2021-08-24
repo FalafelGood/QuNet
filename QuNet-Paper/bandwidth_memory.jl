@@ -12,8 +12,8 @@ datafile = "data/bandwidth_wtih_memory"
 
 
 # Params
-num_trials = 100::Int64
-perc_range = (0.0, 0.1, 1.0)::Tuple{Float64, Float64, Float64}
+num_trials = 10000::Int64
+perc_range = (0.0, 0.05, 1.0)::Tuple{Float64, Float64, Float64}
 grid_size = 10::Int64
 time_depth = 8::Int64
 num_pairs = 10::Int64

@@ -1,0 +1,16 @@
+using QuNet
+
+# println("-----Running maxpaths.jl-----")
+# include("maxpaths.jl")
+# println("-----Running percolations.jl-----")
+# include("percolations.jl")
+println("-----Running gridsize.jl-----")
+include("gridsize.jl")
+# println("-----Running userpairs.jl-----")
+# include("userpairs.jl")
+# println("-----Running timedepth.jl-----")
+# include("timedepth.jl")
+println("-----Running bandwidth_memory.jl")
+include("bandwidth_memory.jl")
+# println("Running bandwidth_userpairs.jl")
+# include("bandwidth_userpairs.jl")
