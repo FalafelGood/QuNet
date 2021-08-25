@@ -9,6 +9,10 @@ are purified together.
     paths::Vector{Vector{Tuple{Int, Int}}}
     freqs::Vector{Int}
 
+    function Pathset()
+        return new(0, 0, Vector{Vector{Tuple{Int, Int}}}(), Vector{Int}())
+    end
+
     function Pathset(paths::Vector{Vector{Tuple{Int, Int}}}, freqs::Vector{Int} = ones(Int64, length(paths)))
         unique!(paths)
         lp = length(paths)
@@ -55,7 +59,7 @@ If the frequency of a path in the pathset exceeds the capacity of the path,
 this function sets the frequency to this maximum capacity and removes that
 amount of paths instead.
 """
-function remPathset(mdg::MetaDiGraph, pathset::Pathset)
+function remPathset!(mdg::MetaDiGraph, pathset::Pathset)
     function tuplesToEdges(path)
         edgepath = Vector{Edge{Int}}()
         for step in path
@@ -85,4 +89,16 @@ function reversePathset(pathset::Pathset)
         push!(revPaths, reversed)
     end
     return Pathset(revPaths, pathset.freqs)
+end
+
+"""
+If a path is in the pathset, return its index in the list. Else return 0.
+"""
+function findPathInPathset(pathset::Pathset, pathtocheck::Vector{Tuple{Int, Int}})
+    for (idx, path) in enumerate(pathset.path)
+        if path == pathtocheck
+            return idx
+        end
+    end
+    return 0
 end

@@ -48,7 +48,7 @@ over a pathset
 """
 function purify(mdg::MetaDiGraph, pathset::Pathset; addChannel = false, bidirectional = false)
     purCosts = purifyCosts(mdg, pathset)
-    remPathset(mdg, pathset)
+    remPathset!(mdg, pathset)
     if addChannel == true
         isRepeat = handleRepeatPurification(mdg, pathset)
         if isRepeat == false
