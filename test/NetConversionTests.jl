@@ -14,8 +14,8 @@ using MetaGraphs
     @test nodeProps[:type] == BasicNode
     @test nodeProps[:qid] == 1
 
-    # Check essential edge properties
-    # TODO:
+    # Check that all vertices have :isChannel property
+    @test all(has_prop(mdg, v, :isChannel) for v in vertices(mdg))
 
     # Check num edges and vertices agrees
     @test length(mdg.vprops) == 3

@@ -94,8 +94,12 @@ end
 """
 If a path is in the pathset, return its index in the list. Else return 0.
 """
-function findPathInPathset(pathset::Pathset, pathtocheck::Vector{Tuple{Int, Int}})
-    for (idx, path) in enumerate(pathset.path)
+function findPathInPathset(pathset::Pathset,
+    pathtocheck::Union{Vector{Tuple{Int, Int}}, Vector{Edge}})
+    if typeof(pathtocheck) == Vector{Edge{Int}}
+        pathtocheck = QuNet.edgesToTuples(pathtocheck)
+    end
+    for (idx, path) in enumerate(pathset.paths)
         if path == pathtocheck
             return idx
         end

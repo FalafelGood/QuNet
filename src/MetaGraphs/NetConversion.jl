@@ -78,9 +78,6 @@ go to the edges)
 function setChanAttrs(mdg, v, qchannel)
     set_prop!(mdg, v, :isChannel, true)
     set_prop!(mdg, v, :type, typeof(qchannel))
-    if qchannel.directed == false
-        set_prop!(mdg, v, :reverseCapacity, qchannel.capacity)
-    end
     for fieldType in fieldnames(typeof(qchannel))
         if fieldType != :costs
             propVal = getproperty(qchannel, fieldType)

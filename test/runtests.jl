@@ -14,7 +14,6 @@ tests = ["BasicNetworkTests",
         "NetInterfaceTests",
         "NodeTests",
         "PathsetTests",
-        "PurificationTests",
         "QNetworkTests",
         ]
 

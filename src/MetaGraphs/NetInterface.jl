@@ -167,38 +167,25 @@ Reduce the channel capacity associated with an channel by one.
 If the channel capacity is zero, remove the corresponding edge.
 If the channel is undirected, operate on both directions.
 """
-function n_remChannel!(mdg::MetaDiGraph, srcNode::Int, dstNode::Int, chanVert::Int; remHowMany = 1)::Nothing
+function n_remChannel!(mdg::MetaDiGraph, chanVert::Int; remHowMany = 1)::Nothing
     if get_prop(mdg, chanVert, :isChannel) == false
         error("chanVert does not correspond to a channel")
     end
-    chanSrc = get_prop(mdg, chanVert, :src)
-    chanDst = get_prop(mdg, chanVert, :dst)
-    @assert(chanSrc in (srcNode, dstNode) && chanDst in (srcNode, dstNode))
-
-    isdirected = get_prop(mdg, chanVert, :directed)
-    inOrder = (chanSrc == srcNode && chanDst == dstNode)
-    if isdirected == true && inOrder == false
-        # No channel to remove
-        return
-    end
-
-    if inOrder == true
-        fieldToModify = :capacity
-    else
-        fieldToModify = :reverseCapacity
-    end
-
-    capacity = get_prop(mdg, chanVert, fieldToModify)
+    capacity = get_prop(mdg, chanVert, :capacity)
     if capacity > 1
         # Make sure capacity doesn't underflow 0.
         capacity - remHowMany >= 0 ? capacity = capacity - remHowMany : capacity = 0
-        set_prop!(mdg, chanVert, fieldToModify, capacity)
+        set_prop!(mdg, chanVert, :capacity, capacity)
     else
-        # Remove the channel edges
-        srcVert = g_getVertex(mdg, srcNode)
-        dstVert = g_getVertex(mdg, dstNode)
+        # Remove the edges of the channel. (Removing vertex is troublesome for removing pathsets)
+        srcVert = get_prop(mdg, chanVert, :src)
+        dstVert = get_prop(mdg, chanVert, :dst)
         rem_edge!(mdg, srcVert, chanVert)
         rem_edge!(mdg, chanVert, dstVert)
+        if get_prop(mdg, chanVert, :directed) == false
+            rem_edge!(mdg, dstVert, chanVert)
+            rem_edge!(mdg, chanVert, srcVert)
+        end
     end
     # TODO: This is a troublemaker. Removing vertices will change indices!
     # If chanVert has no adjacent edges, remove chanVert too.
@@ -232,7 +219,7 @@ by one. If the channel capacity is zero, remove the channel.
 function n_remAllChannels!(mdg::MetaDiGraph, src::Int, dst::Int, remHowMany = 1)
     channels = n_getChannels(mdg, src, dst)
     for chan in channels
-        n_remChannel!(mdg, src, dst, chan, remHowMany=remHowMany)
+        n_remChannel!(mdg, chan, remHowMany=remHowMany)
     end
 end
 
@@ -296,26 +283,17 @@ edges not corresponding to channels.
 """
 function n_removeVertexPath!(mdg::MetaDiGraph, path::Union{Vector{Tuple{Int, Int}}, Vector{Edge{Int}}}; remHowMany = 1)::Nothing
     deadpool = []
-    # firstLoop == true
     for edge in path
         tail = edge.src
         head = edge.dst
         if get_prop(mdg, head, :isChannel) == true
-            # Now that we have the channel vertex, determine the direction
-            srcchan = abs(get_prop(mdg, tail, :qid))
-            # Two possible values for dstchan, head.src or head.dst
-            candidate = abs(get_prop(mdg, head, :src))
-            if srcchan == candidate
-                dstchan = abs(get_prop(mdg, head, :dst))
-            else
-                dstchan = candidate
-            end
-            chanargs = Dict("src"=>srcchan, "dst"=>dstchan, "chanVert"=>head)
-            push!(deadpool, chanargs)
+            push!(deadpool, head)
         end
     end
-    for chanargs in deadpool
-        n_remChannel!(mdg, chanargs["src"], chanargs["dst"], chanargs["chanVert"], remHowMany=remHowMany)
+    # Sort deadpool in reverse order so we don't remove a vertex no longer in graph
+    deadpool = sort(deadpool, rev=true)
+    for chanVert in deadpool
+        n_remChannel!(mdg, chanVert, remHowMany=remHowMany)
     end
     return
 end
@@ -367,6 +345,7 @@ function n_remShortestPath!(mdg::MetaDiGraph, srcNode::Int, dstNode::Int, cost::
     cost = addCostPrefix(cost)
     weightfield!(mdg, Symbol(cost))
     path = a_star(mdg, srcVert, dstVert)
+    # Get the network path from path before it's removed.
     netPath = n_vertexToNetPath(mdg, path)
     pcosts = g_pathCosts(mdg, path)
     n_removeVertexPath!(mdg, path)

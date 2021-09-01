@@ -28,54 +28,35 @@ the collision count by one, and add "nothing" to pur_paths
 function greedyMultiPath!(mdg::MetaDiGraph, userpairs::Array{Tuple{Int,Int}};
         maxpaths::Int64 = 4)
 
-        routingData = [Pathset() for i in range 1:length(userpairs)]
-        routingCosts = Vector{Costs}()
+        routingData = [Pathset() for i in 1:length(userpairs)]
+        # TODO:
+        routingCosts = Vector{Vector{Costs}}()
 
         for pathnum in 1:maxpaths
-            for (userid, user) in enumerate(users)
+            for (userid, user) in enumerate(userpairs)
                 srcNode = user[1]; dstNode = user[2]
                 srcVert = g_getVertex(mdg, srcNode)
                 dstVert = g_getVertex(mdg, dstNode)
                 # Find shortest path in terms of dF and remove it from graph
-                vPath, pcosts = g_shortestPath!(mdg, srcVert, dstVert, "dF")
-                if length(vPath) == 0
-                    break
+                vPath, pcosts = n_remShortestPath!(mdg, srcVert, dstVert, "dF")
+                vPath = edgesToTuples(vPath)
+                pathset = routingData[userid]
+                pathidx = QuNet.findPathInPathset(pathset, vPath)
+                # If path does not exist in Pathset, add it to pathset
+                if pathidx == 0
+                    push!(pathset.paths, vPath)
+                    push!(pathset.freqs, 1)
                 else
-                    n_removeVertexPath(vPath)
-                    pathidx = QuNet.findPathInPathset()
-                    # If path does not exist in Pathset, add it to pathset
-                    if pathidx == 0
-                        pathset = routingData[userid]
-                        push!(pathset.paths, vPath)
-                        push!(pathset.freq, 1)
-                    else
-                        # Update frequency for path
-                        pathset = routingData[userid]
-                        pathset.freq[pathidx] += 1
-                    end
+                    # Update frequency for path
+                    pathset.freqs[pathidx] += 1
                 end
             end
         end
 
-        # Purify pathsets
-        for pathset in routingData
-
-
-        # Purify end-user paths
-        for userpaths in path_costs
-            # Increment the tally for the number of paths beting purified
-            len = length(userpaths)
-            pathuse_count[len + 1] += 1
-            # If len == 0, no paths were found between the end-user.
-            if len == 0
-                push!(pur_paths, nothing)
-            # Otherwise, purify the paths
-            else
-                purcost::Dict{Any, Any} = purification_method(userpaths)
-                # Convert purcost from decibels to metric form
-                purcost = convert_costs(purcost)
-                push!(pur_paths, purcost)
-            end
-        end
-        return pathset, pur_paths, pathuse_count
+    # Purify Costs from pathsets
+    for pathset in routingData
+        costs = QuNet.purifyCosts(mdg, pathset)
+        push!(routingCosts, costs)
     end
+    return routingData, routingCosts
+end

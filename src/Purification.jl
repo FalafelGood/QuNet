@@ -2,6 +2,18 @@
 Primative methods for network reductions (For example purifications and swaps)
 """
 
+function purifyCosts(costvector::Vector{Costs})::Costs
+    dE = collect(cost.dE for cost in costvector)
+    dF = collect(cost.dF for cost in costVector)
+    E = dE_to_E.(dE)
+    F = dF_to_F.(dF)
+    pur_E = prod(E) * (prod(F) + prod(1 .- F))
+    pur_F = prod(F) / (prod(F) + (prod(1 .- F)))
+    dpur_E = E_to_dE(pur_E)
+    dpur_F = F_to_dF(pur_F)
+    return Costs(dpur_E, dpur_F)
+end
+
 """
 Calculate the purification costs given a Pathset
 """
@@ -46,7 +58,7 @@ end
 Reduce the graph associated with the QuNetwork by performing a purification
 over a pathset
 """
-function purify(mdg::MetaDiGraph, pathset::Pathset; addChannel = false, bidirectional = false)
+function purify(mdg::MetaDiGraph, pathset::Pathset; addChannel = false)
     purCosts = purifyCosts(mdg, pathset)
     remPathset!(mdg, pathset)
     if addChannel == true
@@ -55,11 +67,14 @@ function purify(mdg::MetaDiGraph, pathset::Pathset; addChannel = false, bidirect
             addPurifyChannel(mdg, pathset, purCosts)
         end
     end
-    if bidirectional == true
-        rps = QuNet.reversePathset(pathset)
-        revPurCosts = purify(mdg, rps, addChannel=addChannel, bidirectional=false)
-        return purCosts, revPurCosts
-    end
+    # # Remove inactive channels
+    # deadpool = Vector{Int}()
+    # for v in vertices(mdg)
+    #     if get_prop(mdg, v, :isChannel) == true && degree(mdg, v) == 0
+    #         push!(deadpool, v)
+    #     end
+    # end
+    # rem_vertices!(mdg.graph, deadpool)
     return purCosts
 end
 

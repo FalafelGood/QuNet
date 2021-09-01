@@ -12,3 +12,13 @@ function tuplesToEdges(path)
     end
     return edgepath
 end
+
+function edgesToTuples(path)
+    tuplepath = Vector{Tuple{Int, Int}}()
+    for step in path
+        src = step.src
+        dst = step.dst
+        push!(tuplepath, (src, dst))
+    end
+    return tuplepath
+end

@@ -46,6 +46,7 @@ include("Generators.jl")
 include("Purification.jl")
 include("MultiPath.jl")
 include("Utilities.jl")
+include("Routing.jl")
 
 export
 # # Abstract Classes
@@ -90,7 +91,7 @@ Pathset,
 # gplot,
 
 # Generators
-GridNetwork
+GridNetwork,
 
 # # Routing.jl
 # shortest_path,
@@ -99,4 +100,8 @@ GridNetwork
 
 # # Utilities.jl
 # purify
+
+# Routing.jl
+greedyMultiPath!
+
 end
