@@ -201,6 +201,9 @@ function greedy_multi_path!(network::QNetwork, purification_method,
         end
     end
 
+    # Special tally for Nathan: Find the number of paths that the last pair gets
+    lastpair_numpaths = length(last(path_costs))
+
     # A tally of the number of paths each end-user purifies together.
     pathuse_count = [0 for i in 0:maxpaths]
     # An array of purified cost vectors for each end-user.
@@ -222,7 +225,7 @@ function greedy_multi_path!(network::QNetwork, purification_method,
             push!(pur_paths, purcost)
         end
     end
-    return pathset, pur_paths, pathuse_count
+    return pathset, pur_paths, pathuse_count, lastpair_numpaths
 end
 
 

@@ -106,6 +106,8 @@ function net_performance(network::QNetwork, num_trials::Int64, num_pairs::Int64,
         end
     end
 
+    # pathdata contains the number of paths found
+
     if with_err == true
         # Performance data and error
         pfmnce_err = dict_err(pfmnce_data)
@@ -119,6 +121,7 @@ function net_performance(network::QNetwork, num_trials::Int64, num_pairs::Int64,
     # Average path_data
     path_data = mean(path_data)
     pfmnce_data = dict_average(pfmnce_data)
+
     return pfmnce_data, total_collisions, path_data
 end
 

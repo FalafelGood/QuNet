@@ -14,7 +14,7 @@ datafile = "data/userpairs"
 max_pairs = 50::Int64
 num_trials = 5000::Int64
 
-generate_new_data = true
+generate_new_data = false
 if generate_new_data == true
 
     # The average routing costs between end-users sampled over num_trials for different numbers of end-users
@@ -26,6 +26,10 @@ if generate_new_data == true
     path_data = []
     # Associated errors of path_data
     path_err = []
+    # Numer of paths found by the last userpair
+    last_count = []
+    # Rate at which last user finds a path
+    prob_last_nopath = []
 
     grid_size = 10
 
@@ -35,12 +39,13 @@ if generate_new_data == true
         net = GridNetwork(grid_size, grid_size)
 
         # Collect performance statistics
-        p, p_e, pat, pat_e = net_performance(net, num_trials, i, max_paths=4)
+        p, p_e, pat, pat_e, lc, num_zeropath = net_performance(net, num_trials, i, max_paths=4)
         push!(perf_data, p)
         push!(perf_err, p_e)
         push!(path_data, pat)
         push!(path_err, pat_e)
-
+        push!(last_count, lc)
+        push!(prob_last_nopath, num_zeropath/num_trials)
     end
 
     # Collect data for conditional probability of purification: (N2+N3)/∑N_i
@@ -79,7 +84,7 @@ if generate_new_data == true
 
     # Save data
     d = Dict{Symbol, Any}()
-    @pack! d = max_pairs, num_trials, grid_size, perf_data, perf_err, path_data, path_err, cpp, cpp_err, avepath
+    @pack! d = max_pairs, num_trials, grid_size, perf_data, perf_err, path_data, last_count, prob_last_nopath, path_err, cpp, cpp_err, avepath
     save("$datafile.jld", "data", d)
 else
     # Load data
@@ -87,7 +92,7 @@ else
         error("$datafile.jld not found in working directory")
     end
     d = load("$datafile.jld")["data"]
-    @unpack max_pairs, num_trials, grid_size, perf_data, perf_err, path_data, path_err, cpp, cpp_err, avepath = d
+    @unpack max_pairs, num_trials, grid_size, perf_data, perf_err, path_data, last_count, prob_last_nopath, path_err, cpp, cpp_err, avepath = d
 end
 
 # Get values for x axis
@@ -114,9 +119,26 @@ P4e = [path_err[i][5]/i for i in 1:max_pairs]
 
 # Plot
 plot(x, loss, ylims=(0,1), seriestype = :scatter, yerror = loss_err, label=L"$\eta$",
-legend=:bottomright)
+legend=:topright)
 plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$")
 xaxis!(L"$\textrm{Number of End User Pairs}$")
+
+# Collect and plot data for efficiency and fidelity per user pair
+loss_per_user = []
+for (n, e) in enumerate(loss)
+    push!(loss_per_user, (1-P0[n])*e)
+end
+z_per_user = []
+for (n, f) in enumerate(z)
+    push!(z_per_user, (1-P0[n])*f)
+end
+plot!(x, loss_per_user, seriestype = :scatter, label=L"$\eta \textrm{ per user}$")
+
+# Try combining two plots:
+combo_per_user = loss_per_user .* z
+plot!(x, combo_per_user, seriestype = :scatter, label=L"$F \times \eta \textrm{ per user}$")
+
+
 savefig("plots/cost_userpair.png")
 savefig("plots/cost_userpair.pdf")
 
@@ -135,3 +157,19 @@ xaxis!(L"$\textrm{Number of End User Pairs}$")
 yaxis!(L"$\textrm{Average Number of Paths Used}$")
 savefig("plots/avepath_userpair.png")
 savefig("plots/avepath_userpair.pdf")
+
+# yaxis=:log not working because zero -> -Inf log scale
+# plot(x[1:30], last_count[1:30], seriestype = :scatter, legend = false, yaxis=(:log10, [10^(-15), :auto]))
+# println(last_count[1:30])
+plot(x, last_count, seriestype = :scatter, legend = false)
+xaxis!(L"$\textrm{Number of End User Pairs}$")
+yaxis!(L"$\textrm{Number of Paths found by last pair}$")
+savefig("plots/lastpair.png")
+savefig("plots/lastpair.pdf")
+
+plot(x[1:20], prob_last_nopath[1:20], seriestype = :scatter, legend = false)
+xaxis!(L"$\textrm{Number of End User Pairs}$")
+yaxis!(L"$\textrm{Rate that last pair does not find path}$")
+savefig("plots/nopath_rate.png")
+savefig("plots/nopath_rate.pdf")
+# println(last_count)

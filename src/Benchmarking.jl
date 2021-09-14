@@ -193,12 +193,20 @@ random user pairs. Ensure graph is refreshed before starting.
 """
 function net_performance(network::Union{QNetwork, QuNet.TemporalGraph},
     num_trials::Int64, num_pairs::Int64; max_paths=3, src_layer::Int64=-1,
-    dst_layer::Int64=-1, edge_perc_rate=0.0)
+    dst_layer::Int64=-1, edge_perc_rate=0.0, get_apd=false)
 
     # Sample of average routing costs between end-users
     ave_cost_data = []
     # Sample of path usage statistics for the algorithm
     pathcount_data = []
+    # number of paths found by the last pair in the network
+    last_count = []
+    # Average distances between userpairs in the network.
+    ave_path_distance = []
+    ave_path_distance_err = []
+    # Average manhattan distances between userpairs post-selected on paths existing
+    ave_postman = []
+    ave_postman_err = []
 
     for i in 1:num_trials
         net = deepcopy(network)
@@ -221,8 +229,18 @@ function net_performance(network::Union{QNetwork, QuNet.TemporalGraph},
             refresh_graph!(net)
         end
 
+        # Get ave_path_difference
+        if get_apd == true
+            apd = get_ave_path_distance(net, user_pairs)
+            if apd != nothing
+                push!(ave_path_distance, apd)
+            end
+        end
+
         # Get data from greedy_multi_path
-        dummy, routing_costs, pathuse_count = QuNet.greedy_multi_path!(net, purify, user_pairs, max_paths)
+        dummy, routing_costs, pathuse_count, lastpair_numpaths = QuNet.greedy_multi_path!(net, purify, user_pairs, max_paths)
+
+        push!(last_count, lastpair_numpaths)
 
         # Filter out entries where no paths were found and costs are not well defined
         filter!(x->x!=nothing, routing_costs)
@@ -269,11 +287,58 @@ function net_performance(network::Union{QNetwork, QuNet.TemporalGraph},
         metric_err[key] = perc_err[key] * metric_performance[key]
     end
 
+    # Take means of statistical quanitities
+    ave_lastcount = mean(last_count)
+    num_zeropaths = count(i->(i==0), last_count)
+
+    if get_apd == true
+        ave_path_distance_err = sqrt(var(ave_path_distance)/num_trials)
+        ave_path_distance = mean(ave_path_distance)
+        # sqrt(var(ave_path_distance)/float(num_trials))
+    end
+
     # return performance, performance_err, ave_pathcounts, ave_pathcounts_err
     # # TODO:
-    return metric_performance, metric_err, ave_pathcounts, ave_pathcounts_err
+    return metric_performance, metric_err, ave_pathcounts, ave_pathcounts_err, ave_lastcount, num_zeropaths,
+    ave_path_distance, ave_path_distance_err
 end
 
+function get_ave_path_distance(network::QNetwork, userpairs)
+    path_lengths = []
+    g = network.graph["Z"]
+    for pair in userpairs
+        path = shortest_path(g, pair[1], pair[2])
+        l = length(path)
+        if l != 0
+            push!(path_lengths, l)
+        end
+    end
+    if length(path_lengths) == 0
+        return nothing
+    end
+    return mean(path_lengths)
+end
+
+# Get manhattan distance post-selected on userpairs existing
+function postman(network::QNetwork, perc_network::QNetwork, userpairs, gridsize)
+    path_lengths = []
+    gperc = perc_network.graph["Z"]
+    g = network.graph["Z"]
+    for pair in userpairs
+        path = shortest_path(gperc, pair[1], pair[2])
+        l = length(path)
+        if l != 0
+            # Path exists, therefore find ave manhattan distance
+            path = shortest_path(g, pair[1], pair[2])
+            l = length(path)
+            push!(path_lengths, l)
+        end
+    end
+    if length(path_lengths) == 0
+        return nothing
+    end
+    return mean(path_lengths)
+end
 
 """
 Takes a network as input and returns greedy_multi_path! heatmap data for

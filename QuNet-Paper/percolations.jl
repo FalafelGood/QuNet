@@ -4,8 +4,8 @@ rate (The probability that a given edge is removed)
 """
 
 using QuNet
-using LightGraphs, SimpleWeightedGraphs, GraphPlot, MetaGraphs, Plots, Colors, Statistics
 using LaTeXStrings
+using LightGraphs, SimpleWeightedGraphs, GraphPlot, MetaGraphs, Plots, Colors, Statistics
 using JLD
 using Parameters
 
@@ -15,9 +15,10 @@ datafile = "data/percolations"
 num_pairs = 1::Int64
 grid_size = 10::Int64
 perc_range = (0.0, 0.01, 0.7)::Tuple{Float64, Float64, Float64}
+# 5000
 num_trials = 5000::Int64
 
-generate_new_data = true
+generate_new_data = false
 if generate_new_data == true
 
     net = GridNetwork(grid_size, grid_size)
@@ -26,6 +27,8 @@ if generate_new_data == true
     perf_err = []
     path_data = []
     path_err = []
+    ave_path_distance = []
+    ave_path_distance_err = []
 
     for p in perc_range[1]:perc_range[2]:perc_range[3]
         println("Collecting for percolation rate: $p")
@@ -35,17 +38,20 @@ if generate_new_data == true
         # refresh_graph!(perc_net)
 
         # Collect performance data with error, percolating the network edges
-        p, p_e, pat, pat_e = net_performance(net, num_trials, num_pairs, max_paths=4,
-        edge_perc_rate = p)
+        p, p_e, pat, pat_e, dummy, dummy, apd, apd_err = net_performance(net, num_trials, num_pairs, max_paths=4,
+        edge_perc_rate = p, get_apd=true)
         push!(perf_data, p)
         push!(perf_err, p_e)
         push!(path_data, pat)
         push!(path_err, pat_e)
+        push!(ave_path_distance, apd)
+        push!(ave_path_distance_err, apd_err)
     end
 
     # Save data
     d = Dict{Symbol, Any}()
-    @pack! d = num_pairs, grid_size, perc_range, num_trials, perf_data, perf_err, path_data, path_err
+    @pack! d = num_pairs, grid_size, perc_range, num_trials, perf_data, perf_err, path_data, path_err, ave_path_distance,
+    ave_path_distance_err
     save("$datafile.jld", "data", d)
 
 else
@@ -54,7 +60,7 @@ else
         error("$datafile.jld not found in working directory")
     end
     d = load("$datafile.jld")["data"]
-    @unpack num_pairs, grid_size, perc_range, num_trials, perf_data, perf_err, path_data, path_err = d
+    @unpack num_pairs, grid_size, perc_range, num_trials, perf_data, perf_err, path_data, path_err, ave_path_distance, ave_path_distance_err = d
 end
 
 # Get values for x axis
@@ -82,8 +88,13 @@ P4e = [path_err[i][5]/num_pairs for i in 1:length(perc_range[1]:perc_range[2]:pe
 
 # Plot
 plot(x, loss, ylims=(0,1), seriestype = :scatter, yerror = loss_err, label=L"$\eta$",
-legend=:bottomright)
+legend=:bottomright, xguidefontsize=14, tickfontsize=12)
 plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$")
+# Adding new ave_shortest_path costs
+f = dB_to_Z.(ave_path_distance)
+e = dB_to_P.(ave_path_distance)
+plot!(x, f, seriestype = :scatter, label="f", legend= true)
+plot!(x, e, seriestype = :scatter, label="e", legend= true)
 xaxis!(L"$\textrm{Probability of Edge Removal}$")
 savefig("plots/cost_percolation.pdf")
 savefig("plots/cost_percolation.png")
@@ -96,3 +107,19 @@ plot!(x, P4, linewidth=2, yerr = P3e, label=L"$P_4$")
 xaxis!(L"$\textrm{Probability of Edge Removal}$")
 savefig("plots/path_percolation.pdf")
 savefig("plots/path_percolation.png")
+
+# Plot ave_path_distance
+# println(ave_path_distance)
+# println(ave_path_distance_err)
+# f = dB_to_Z.(ave_path_distance)
+# e = dB_to_P.(ave_path_distance)
+# plot(x, f, seriestype = :scatter, label="f", legend= true)
+# plot!(x, e, seriestype = :scatter, label="e", legend= true)
+# plot!(x, loss, ylims=(0,1), seriestype = :scatter, yerror = loss_err, label=L"$\eta$")
+# plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$")
+plot(x, ave_path_distance, yerr = ave_path_distance_err, seriestype = :scatter)
+# Plot horizontal line for ave manhattan distance for 10x10 grid:
+mandist = ones(length(x)) .* 6.67
+plot!(x, mandist, linewidth=2)
+savefig("plots/path_distance_percolation.pdf")
+savefig("plots/path_distance_percolation.png")

@@ -12,7 +12,7 @@ using Parameters
 
 
 datafile = "data/maxpaths"
-generate_new_data = true
+generate_new_data = false
 if generate_new_data == true
 
     # Params
@@ -69,19 +69,24 @@ loss_arr4 = collect(map(x->x["loss"], perf_data4))
 z_arr4 = collect(map(x->x["Z"], perf_data4))
 
 # Plot
-plot(x, loss_arr1, linewidth=2, label=L"$\eta_1$", xlims=(0, max_size), color = :red, legend=:left)
-plot!(x, z_arr1, linewidth=2, label=L"$F_1$", linestyle=:dash, color =:red)
-plot!(x, loss_arr2, linewidth=2, label=L"$\eta_2$", color =:blue)
-plot!(x, z_arr2, linewidth=2, label=L"$F_2$", linestyle=:dash, color =:blue)
+plot(x, loss_arr1, seriestype = :scatter, label=L"$\eta_1$", xlims=(0, max_size), color = :red,
+legend=:left, legendfontsize = 7, xguidefontsize = 10, tickfontsize = 10)
+plot!(x, z_arr1, seriestype = :scatter, label=L"$F_1$", color =:red)
+plot!(x, loss_arr2, seriestype = :scatter, label=L"$\eta_2$", color =:blue)
+plot!(x, z_arr2, seriestype = :scatter, label=L"$F_2$", linestyle=:dash, color =:blue)
 # [3:end]
-plot!(x, loss_arr3, linewidth=2, label=L"$\eta_3$", color =:green)
-plot!(x, z_arr3, linewidth=2, label=L"$F_3$", linestyle=:dash, color =:green)
-plot!(x, loss_arr4, linewidth=2, label=L"$\eta_3$", color =:purple)
-plot!(x, z_arr4, linewidth=2, label=L"$F_4$", linestyle=:dash, color =:purple)
+plot!(x, loss_arr3, seriestype = :scatter, label=L"$\eta_3$", color =:green)
+plot!(x, z_arr3, seriestype = :scatter, label=L"$F_3$", linestyle=:dash, color =:green)
+plot!(x, loss_arr4, seriestype = :scatter, label=L"$\eta_3$", color =:purple)
+plot!(x, z_arr4, seriestype = :scatter, label=L"$F_4$", linestyle=:dash, color =:purple)
 
 # Plot analytic function for average cost:
 function ave_pathlength(n)
     return 2/3 * n
+end
+
+function ave_1dlength(n)
+    return (n+1)/3
 end
 
 ave_e = []
@@ -95,6 +100,60 @@ end
 
 plot!(x, ave_e, linewidth=2, label=L"$\textrm{ave } \eta$", color =:orange)
 plot!(x, ave_f, linewidth=2, label=L"$\textrm{ave } F$", linestyle=:dash, color =:orange)
+
+# # Get data for naive 2 path purification
+# naive_e2 = []
+# naive_f2 = []
+# for size in min_size:max_size
+#     e = dB_to_P(ave_pathlength(size))
+#     f = dB_to_Z(ave_pathlength(size))
+#     p = 2 / (size + 1)
+#     epur, fpur = QuNet.purify(e, e, f, f)
+#     push!(naive_e2, epur)
+#     push!(naive_f2, fpur)
+# end
+# plot!(x, naive_e2, linewidth=2, label=L"$\textrm{Naive E2}$", linestyle=:dot, color =:blue)
+# plot!(x, naive_f2, linewidth=2, label=L"$\textrm{Naive F2}$", linestyle=:dot, color =:blue)
+
+# Get analytic data for 2 path purification
+ave_e2 = []
+ave_f2 = []
+for size in min_size:max_size
+    # Method 1
+    # p = 2 / (size + 1)
+    # e = dB_to_P(ave_pathlength(size))
+    # eplus = dB_to_P(ave_pathlength(size) + 2)
+    # f = dB_to_Z(ave_pathlength(size))
+    # fplus = dB_to_Z(ave_pathlength(size) + 2)
+    # e2, f2 = QuNet.purify(e, eplus, f, fplus) .* p .+ QuNet.purify(e, e, f, f) .* (1-p)
+
+    # Method 2:
+    # e = dB_to_P(ave_pathlength(size))
+    # f = dB_to_Z(ave_pathlength(size))
+    # eplus = dB_to_P(ave_pathlength(size) + 2)
+    # fplus = dB_to_Z(ave_pathlength(size) + 2)
+    # p = 2 / (size + 1)
+    # e2, f2 = QuNet.purify(e, eplus*p + e*(1-p), f, fplus*p + f*(1-p))
+
+    # Method 3
+    p = 2 / (size + 1)
+    e_dif = dB_to_P(ave_pathlength(size))
+    f_dif = dB_to_Z(ave_pathlength(size))
+    e_same = dB_to_P(ave_1dlength(size))
+    e_same2 = dB_to_P(ave_1dlength(size) + 2)
+    f_same = dB_to_Z(ave_1dlength(size))
+    f_same2 = dB_to_Z(ave_1dlength(size) + 2)
+    e_dif, f_dif = QuNet.purify(e_dif, e_dif, f_dif, f_dif)
+    e_same, f_same = QuNet.purify(e_same, e_same2, f_same, f_same2)
+
+    e2 = (1-p)*e_dif + p*e_same
+    f2 = (1-p)*f_dif + p*f_same
+
+    push!(ave_e2, e2)
+    push!(ave_f2, f2)
+end
+plot!(x, ave_e2, linewidth=2, label=L"$\textrm{ave } F_2$", linestyle=:dot, color =:black)
+plot!(x, ave_f2, linewidth=2, label=L"$\textrm{ave } F_2$", linestyle=:dot, color =:black)
 
 xaxis!(L"$\textrm{Grid Size}$")
 savefig("plots/cost_maxpaths.png")
