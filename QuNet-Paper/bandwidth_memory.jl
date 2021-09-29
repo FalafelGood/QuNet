@@ -1,5 +1,7 @@
 """
-TODO: Write docstring here.
+Two different temporal plots, one with memory and one with some percolation rate.
+While varying the percolation rate, we compare the ratio of the depths of the
+graphs
 """
 
 using QuNet
@@ -12,11 +14,11 @@ datafile = "data/bandwidth_wtih_memory"
 
 
 # Params
-num_trials = 10000::Int64
-perc_range = (0.0, 0.05, 1.0)::Tuple{Float64, Float64, Float64}
+num_trials = 10::Int64
+perc_range = (0.05, 0.05, 0.95)::Tuple{Float64, Float64, Float64}
 grid_size = 10::Int64
-time_depth = 8::Int64
-num_pairs = 10::Int64
+time_depth = 25::Int64
+num_pairs = 50::Int64
 asynchronus_weight = 100::Int64
 
 generate_new_data = true
@@ -41,7 +43,7 @@ if generate_new_data == true
             T_copy = deepcopy(T)
 
             # Get i random userpairs with asynchronus src and dst nodes.
-            # mem_user_pairs = make_user_pairs(T_mem, num_pairs, src_layer=-1, dst_layer=-1)
+            mem_user_pairs = make_user_pairs(T_mem, num_pairs, src_layer=1, dst_layer=-1)
             user_pairs = make_user_pairs(T, num_pairs, src_layer=-1, dst_layer=-1)
 
             # Add async nodes
@@ -50,7 +52,7 @@ if generate_new_data == true
 
             # Get pathset data
             # NOTE: the line below used to have mem_user_pairs as an argument.
-            pathset_mem, dum1, dum2 = QuNet.greedy_multi_path!(T_mem, QuNet.purify, user_pairs, 1)
+            pathset_mem, dum1, dum2 = QuNet.greedy_multi_path!(T_mem, QuNet.purify, mem_user_pairs, 1)
             pathset, dum1, dum2 = QuNet.greedy_multi_path!(T_copy, QuNet.purify, user_pairs, 1)
             # Pathset is an array of vectors containing edges describing paths between end-user pairs
             # Objective: find the largest timedepth used in the pathsets

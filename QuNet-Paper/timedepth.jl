@@ -22,10 +22,10 @@ datafile = "data/timedepth"
 # Params
 num_trials = 1000::Int64
 max_depth = 15::Int64
-num_pairs = 40::Int64
+num_pairs = 50::Int64
 grid_size = 10::Int64
 
-generate_new_data = true
+generate_new_data = false
 if generate_new_data == true
 
     perf_data = []
@@ -56,7 +56,7 @@ if generate_new_data == true
 
     # Save data
     d = Dict{Symbol, Any}()
-    @pack! d = num_trials, max_depth, num_pairs, grid_size, perf_data, perf_err, path_data, path_err
+    @pack! d = num_trials, max_depth, num_pairs, grid_size, perf_data, perf_err, path_data, path_err, e_as, f_as
     save("$datafile.jld", "data", d)
 
 else
@@ -65,8 +65,10 @@ else
         error("$datafile.jld not found in working directory")
     end
     d = load("$datafile.jld")["data"]
-    @unpack num_trials, max_depth, num_pairs, grid_size, perf_data, perf_err, path_data, path_err = d
+    @unpack num_trials, max_depth, num_pairs, grid_size, perf_data, perf_err, path_data, path_err, e_as, f_as = d
 end
+
+asymptotic_costs(10)
 
 # Get values for x axis
 x = collect(1:max_depth)
@@ -92,23 +94,31 @@ P4e = [path_err[i][5]/num_pairs for i in 1:max_depth]
 
 # Plot
 # after seriestype: marker = (5)
-plot(x, loss, ylims=(0,1), seriestype = :scatter, yerror = loss_err, label=L"$\eta$",
-legend=:right)
-plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$")
+plot(x, loss, ylims=(0,1), xlims=(0,15), seriestype = :scatter, yerror = loss_err, label=L"$\eta$",
+legend=:right, xguidefontsize=14, tickfontsize=12, legendfontsize=10, fontfamily="computer modern",
+markersize=5, color=:DodgerBlue, markershape =:utriangle)
+plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$", markersize=5, color=:Crimson)
 
 # Plot asymptote
-plot!(x, e_as, linestyle=:dot, color=:red, linewidth=2, label=L"$\textrm{Asymptotic } \eta$")
-plot!(x, f_as, linestyle=:dot, color=:green, linewidth=2, label=L"$\textrm{Asymptotic } F$")
+plot!(x, e_as, linestyle=:dot, color=:blue, linewidth=2, label=L"$\textrm{Asymptotic } \eta$")
+plot!(x, f_as, linestyle=:dot, color=:red, linewidth=2, label=L"$\textrm{Asymptotic } F$")
 xaxis!(L"$\textrm{Time Depth of Tempral Meta-Graph}$")
 
 savefig("plots/cost_temporal.png")
 savefig("plots/cost_temporal.pdf")
 
-plot(x, P0, ylims=(0,1), linewidth=2, yerr = P0e, label=L"$P_0$", legend= :right)
-plot!(x, P1, linewidth=2, yerr = P1e, label=L"$P_1$")
-plot!(x, P2, linewidth=2, yerr = P2e, label=L"$P_2$")
-plot!(x, P3, linewidth=2, yerr = P3e, label=L"$P_3$")
-plot!(x, P4, linewidth=2, yerr = P4e, label=L"$P_4$")
+plot(x, P0, ylims=(0,1), xlims=(0,15), seriestype=:scatter, yerr = P0e, label=L"$P_0$", legend= :right,
+xguidefontsize=14, tickfontsize=12, legendfontsize=10, fontfamily="computer modern",
+markersize=5, color_palette = palette(:plasma, 10))
+plot!(x, P0, linewidth=1, label=false)
+plot!(x, P1, seriestype=:scatter, yerr = P1e, label=L"$P_1$", markersize=5)
+plot!(x, P1, linewidth=1, label=false)
+plot!(x, P2, seriestype=:scatter, yerr = P2e, label=L"$P_2$", markersize=5)
+plot!(x, P2, linewidth=1, label=false)
+plot!(x, P3, seriestype=:scatter, yerr = P3e, label=L"$P_3$", markersize=5)
+plot!(x, P3, linewidth=1, label=false)
+plot!(x, P4, seriestype=:scatter, yerr = P4e, label=L"$P_4$", markersize=5)
+plot!(x, P4, linewidth=1, label=false)
 xaxis!(L"$\textrm{Time Depth of Temporal Meta-Graph}$")
 
 savefig("plots/path_temporal.png")

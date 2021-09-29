@@ -39,7 +39,7 @@ end
 
 function purify(E1::Float64,E2:: Float64,F1::Float64,F2::Float64)
     E = E1*E2 * (F1*F2 + (1-F1)*(1-F2))
-    F = F1*F1 / (F1*F2 + (1-F1)*(1-F2))
+    F = F1*F2 / (F1*F2 + (1-F1)*(1-F2))
     return (E,F)
 end
 

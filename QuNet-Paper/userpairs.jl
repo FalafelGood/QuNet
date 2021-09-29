@@ -117,11 +117,13 @@ P2e = [path_err[i][3]/i for i in 1:max_pairs]
 P3e = [path_err[i][4]/i for i in 1:max_pairs]
 P4e = [path_err[i][5]/i for i in 1:max_pairs]
 
-# Plot
+##### Plot cost_userpair #####
+# color_palette = palette(:lightrainbow, 4)
 plot(x, loss, ylims=(0,1), seriestype = :scatter, yerror = loss_err, label=L"$\eta$",
-legend=:topright)
-plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$")
-xaxis!(L"$\textrm{Number of End User Pairs}$")
+legend=:topright, guidefontsize=14, tickfontsize=12, legendfontsize=10, fontfamily="computer modern",
+color=:Dodgerblue, markersize=5, markershape=:utriangle)
+# xaxis!(L"$\textrm{Number of End User Pairs}$")
+yaxis!("Costs")
 
 # Collect and plot data for efficiency and fidelity per user pair
 loss_per_user = []
@@ -132,44 +134,75 @@ z_per_user = []
 for (n, f) in enumerate(z)
     push!(z_per_user, (1-P0[n])*f)
 end
-plot!(x, loss_per_user, seriestype = :scatter, label=L"$\eta \textrm{ per user}$")
+plot!(x, loss_per_user, seriestype = :scatter, label=L"$\eta \textrm{ per user}$",
+markersize=5, markershape=:utriangle, color=:LightSkyBlue)
+
+plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$", markersize=5,
+color = :Crimson)
 
 # Try combining two plots:
 combo_per_user = loss_per_user .* z
-plot!(x, combo_per_user, seriestype = :scatter, label=L"$F \times \eta \textrm{ per user}$")
-
+plot!(x, combo_per_user, seriestype = :scatter, label=L"$F \times \eta \textrm{ per user}$",
+markersize=4, markershape=:square, color=:mediumpurple)
 
 savefig("plots/cost_userpair.png")
 savefig("plots/cost_userpair.pdf")
 
-plot(x, P0, ylims=(0,1), linewidth=2, yerr = P0e, label=L"$P_0$", legend= :right)
-plot!(x, P1, linewidth=2, yerr = P1e, label=L"$P_1$")
-plot!(x, P2, linewidth=2, yerr = P2e, label=L"$P_2$")
-plot!(x, P3, linewidth=2, yerr = P3e, label=L"$P_3$")
-plot!(x, P4, linewidth=2, yerr = P4e, label=L"$P_4$")
-plot!(x, cpp, linewidth=2, yerr = cpp_err, label=L"$P_{P}$")
+##### Plot path_userpair #####
+plot(x, P0, ylims=(0,1), seriestype=:scatter, yerr = P0e, label=L"$P_0$", legend= :right,
+guidefontsize=14, tickfontsize=12, legendfontsize=10, fontfamily="computer modern",
+color_palette = palette(:plasma, 5), markersize=5)
+plot!(x, P1, seriestype=:scatter, yerr = P1e, label=L"$P_1$", markersize=5)
+plot!(x, P2, seriestype=:scatter, yerr = P2e, label=L"$P_2$", markersize=5)
+plot!(x, P3, seriestype=:scatter, yerr = P3e, label=L"$P_3$", markersize=5)
+plot!(x, P4, seriestype=:scatter, yerr = P4e, label=L"$P_4$", markersize=5)
+plot!(x, cpp, seriestype=:scatter, yerr = cpp_err, label=L"$P_{P}$", color=:MediumSpringGreen,
+markersize=5)
+yaxis!("Path probability")
 xaxis!(L"$\textrm{Number of End User Pairs}$")
+# xaxis!(L"$\textrm{Number of End User Pairs}$")
 savefig("plots/path_userpair.png")
 savefig("plots/path_userpair.pdf")
 
-plot(x, avepath, linewidth=2, legend = false)
+plot(x, avepath, linewidth=2, legend = false,
+xguidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern")
 xaxis!(L"$\textrm{Number of End User Pairs}$")
 yaxis!(L"$\textrm{Average Number of Paths Used}$")
 savefig("plots/avepath_userpair.png")
 savefig("plots/avepath_userpair.pdf")
 
+##### Plot nopath_rate #####
 # yaxis=:log not working because zero -> -Inf log scale
-# plot(x[1:30], last_count[1:30], seriestype = :scatter, legend = false, yaxis=(:log10, [10^(-15), :auto]))
+plot(x[1:30], last_count[1:30], seriestype = :scatter, legend = false, yaxis=(:log10, [10^(-5), :auto]))
 # println(last_count[1:30])
-plot(x, last_count, seriestype = :scatter, legend = false)
-xaxis!(L"$\textrm{Number of End User Pairs}$")
+# plot(x, last_count, seriestype = :scatter, legend = false)
+# xaxis!(L"$\textrm{Number of End User Pairs}$")
 yaxis!(L"$\textrm{Number of Paths found by last pair}$")
 savefig("plots/lastpair.png")
 savefig("plots/lastpair.pdf")
 
-plot(x[1:20], prob_last_nopath[1:20], seriestype = :scatter, legend = false)
-xaxis!(L"$\textrm{Number of End User Pairs}$")
-yaxis!(L"$\textrm{Rate that last pair does not find path}$")
+function get_firstzero_loc(arr)
+    for (idx, val) in enumerate(prob_last_nopath)
+        if val == 1
+            return idx
+        end
+    end
+    return idx
+end
+
+first_zero = get_firstzero_loc(prob_last_nopath)
+
+plot(x[1:first_zero], 1 .- prob_last_nopath[1:first_zero], seriestype = :scatter, legend = false,
+guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern", markersize=5)
+plot!(x[first_zero+1:max_pairs], 1 .- prob_last_nopath[first_zero+1:max_pairs], seriestype =:scatter,
+legend = false, color=:white, markersize=5)
+# xaxis!(L"$\textrm{Number of End User Pairs}$")
+yaxis!(L"$\textrm{Rate that last pair finds path}$")
+
+plot!(x[1:20], 1 .- prob_last_nopath[1:20], seriestype = :scatter, inset = (1, bbox(0.05, 0.05, 0.33, 0.33, :top, :right)),
+subplot=2, legend=false, yaxis=(:log10, [10^(-5), :auto]))
 savefig("plots/nopath_rate.png")
 savefig("plots/nopath_rate.pdf")
 # println(last_count)
+
+# plot!(x[1:20], 1 .- prob_last_nopath[1:20], seriestype = :scatter, inset = (1, bbox(0.10, 0.10, 0.5, 0.5, :bottom, :left)))

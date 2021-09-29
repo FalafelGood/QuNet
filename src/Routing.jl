@@ -295,7 +295,11 @@ function greedy_multi_path!(network::QuNet.TemporalGraph, purification_method,
             push!(pur_paths, purcost)
         end
     end
-    return pathset, pur_paths, pathuse_count
+
+    # Special tally for Nathan: Find the number of paths that the last pair gets
+    lastpair_numpaths = length(last(path_costs))
+
+    return pathset, pur_paths, pathuse_count, lastpair_numpaths
 end
 
 

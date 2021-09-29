@@ -193,7 +193,7 @@ random user pairs. Ensure graph is refreshed before starting.
 """
 function net_performance(network::Union{QNetwork, QuNet.TemporalGraph},
     num_trials::Int64, num_pairs::Int64; max_paths=3, src_layer::Int64=-1,
-    dst_layer::Int64=-1, edge_perc_rate=0.0, get_apd=false)
+    dst_layer::Int64=-1, edge_perc_rate=0.0, get_apd=false, get_postman=false)
 
     # Sample of average routing costs between end-users
     ave_cost_data = []
@@ -207,6 +207,9 @@ function net_performance(network::Union{QNetwork, QuNet.TemporalGraph},
     # Average manhattan distances between userpairs post-selected on paths existing
     ave_postman = []
     ave_postman_err = []
+    # List of pathlengths > 0 for every trial, and every userpair.
+    pathlengths = []
+    shortest_avail_path = []
 
     for i in 1:num_trials
         net = deepcopy(network)
@@ -229,18 +232,30 @@ function net_performance(network::Union{QNetwork, QuNet.TemporalGraph},
             refresh_graph!(net)
         end
 
-        # Get ave_path_difference
+        # Get data from greedy_multi_path
+        pathset, routing_costs, pathuse_count, lastpair_numpaths = QuNet.greedy_multi_path!(net, purify, user_pairs, max_paths)
+
+        # Add values to ave_path_difference
         if get_apd == true
-            apd = get_ave_path_distance(net, user_pairs)
-            if apd != nothing
-                push!(ave_path_distance, apd)
-            end
+            add_man_dists!(network, pathset, user_pairs, ave_path_distance)
         end
 
-        # Get data from greedy_multi_path
-        dummy, routing_costs, pathuse_count, lastpair_numpaths = QuNet.greedy_multi_path!(net, purify, user_pairs, max_paths)
+        # Add values to add_postman_dists!
+        if get_postman == true
+            add_postman_dists!(network, pathset, user_pairs, ave_postman)
+        end
 
         push!(last_count, lastpair_numpaths)
+
+        # # Collect path lengths from pathset, add them to pathlengths
+        # for user in pathset
+        #     for path in user
+        #         l = length(path)
+        #         if l != 0
+        #             push!(pathlengths, l)
+        #         end
+        #     end
+        # end
 
         # Filter out entries where no paths were found and costs are not well defined
         filter!(x->x!=nothing, routing_costs)
@@ -287,58 +302,107 @@ function net_performance(network::Union{QNetwork, QuNet.TemporalGraph},
         metric_err[key] = perc_err[key] * metric_performance[key]
     end
 
-    # Take means of statistical quanitities
+    # Get stats for ave_lastcount
     ave_lastcount = mean(last_count)
+
+    # Get stats for num_zeropaths
     num_zeropaths = count(i->(i==0), last_count)
 
+    # ave_path_distance = mean(pathlengths)
+    # ave_path_distance_err = sqrt(var(pathlengths)/num_trials)
+
+    # Get stats for apd
     if get_apd == true
         ave_path_distance_err = sqrt(var(ave_path_distance)/num_trials)
         ave_path_distance = mean(ave_path_distance)
         # sqrt(var(ave_path_distance)/float(num_trials))
     end
 
+    # Get stats for postman
+    if get_postman == true
+        ave_postman_err = sqrt(var(ave_postman)/num_trials)
+        ave_postman = mean(ave_postman)
+    end
+
     # return performance, performance_err, ave_pathcounts, ave_pathcounts_err
     # # TODO:
     return metric_performance, metric_err, ave_pathcounts, ave_pathcounts_err, ave_lastcount, num_zeropaths,
-    ave_path_distance, ave_path_distance_err
+    ave_path_distance, ave_path_distance_err, ave_postman, ave_postman_err
 end
 
-function get_ave_path_distance(network::QNetwork, userpairs)
-    path_lengths = []
+# Current version
+# Add manhattan distances for given network and userpairs onto man_paths array
+# Find L1 distance:
+#   For each element in pathset, check if path exists
+#   If path exists, find L1 distance
+#   Add L1 distance to relevant array
+function add_man_dists!(network::QNetwork, pathset, userpairs, man_paths)
     g = network.graph["Z"]
-    for pair in userpairs
-        path = shortest_path(g, pair[1], pair[2])
-        l = length(path)
-        if l != 0
-            push!(path_lengths, l)
+    for (pairidx, paths) in enumerate(pathset)
+        if length(paths) != 0
+            pair = userpairs[pairidx]
+            p = shortest_path(g, pair[1], pair[2])
+            l = length(p)
+            push!(man_paths, l)
         end
     end
-    if length(path_lengths) == 0
-        return nothing
-    end
-    return mean(path_lengths)
 end
 
-# Get manhattan distance post-selected on userpairs existing
-function postman(network::QNetwork, perc_network::QNetwork, userpairs, gridsize)
-    path_lengths = []
-    gperc = perc_network.graph["Z"]
-    g = network.graph["Z"]
-    for pair in userpairs
-        path = shortest_path(gperc, pair[1], pair[2])
-        l = length(path)
-        if l != 0
-            # Path exists, therefore find ave manhattan distance
-            path = shortest_path(g, pair[1], pair[2])
-            l = length(path)
-            push!(path_lengths, l)
+# Shortest availible path
+# For each element in pathset,
+    # Check if path exists
+    # If path exists, get length of first path
+    # Add path to array
+function add_postman_dists!(network, pathset, userpairs, postman_paths)
+    for (idx, pair) in enumerate(pathset)
+        if length(pair) != 0
+            l = length(first(pair))
+            push!(postman_paths, l)
         end
     end
-    if length(path_lengths) == 0
-        return nothing
-    end
-    return mean(path_lengths)
 end
+
+# # Add manhattan distances for given network and userpairs onto man_paths array
+# function add_man_dists!(network::QNetwork, userpairs, man_paths)
+#     g = network.graph["Z"]
+#     for pair in userpairs
+#         path = shortest_path(g, pair[1], pair[2])
+#         l = length(path)
+#         if l != 0
+#             push!(man_paths, l)
+#         end
+#     end
+# end
+
+# Add manhattan distances for given network and userpairs post-selected
+# path between userpairs existing in percolated network.
+# TODO: Include competition effects.
+# function add_postman_dists!(network::QNetwork, perc_network::QNetwork, userpairs, postman_paths)
+#     gperc = perc_network.graph["Z"]
+#     g = network.graph["Z"]
+#     for pair in userpairs
+#         path = shortest_path(gperc, pair[1], pair[2])
+#         l = length(path)
+#         if l != 0
+#             # Path exists, therefore find ave manhattan distance
+#             path = shortest_path(g, pair[1], pair[2])
+#             l = length(path)
+#             push!(postman_paths, l)
+#         end
+#     end
+# end
+
+# function add_postman_dists!(network, pathset, userpairs, postman_paths)
+#     kill_list = []
+#     filtered_pairs = deepcopy(userpairs)
+#     for (idx, pair) in enumerate(pathset)
+#         if length(pair) != 0
+#             push!(kill_list, idx)
+#         end
+#     end
+#     deleteat!(filtered_pairs, kill_list)
+#     add_man_dists!(network, filtered_pairs, postman_paths)
+# end
 
 """
 Takes a network as input and returns greedy_multi_path! heatmap data for

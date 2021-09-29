@@ -29,6 +29,8 @@ if generate_new_data == true
     path_err = []
     ave_path_distance = []
     ave_path_distance_err = []
+    postman = []
+    postman_err = []
 
     for p in perc_range[1]:perc_range[2]:perc_range[3]
         println("Collecting for percolation rate: $p")
@@ -38,20 +40,22 @@ if generate_new_data == true
         # refresh_graph!(perc_net)
 
         # Collect performance data with error, percolating the network edges
-        p, p_e, pat, pat_e, dummy, dummy, apd, apd_err = net_performance(net, num_trials, num_pairs, max_paths=4,
-        edge_perc_rate = p, get_apd=true)
+        p, p_e, pat, pat_e, dummy, dummy, apd, apd_err, post, post_err = net_performance(net, num_trials, num_pairs, max_paths=4,
+        edge_perc_rate = p, get_apd=true, get_postman=true)
         push!(perf_data, p)
         push!(perf_err, p_e)
         push!(path_data, pat)
         push!(path_err, pat_e)
         push!(ave_path_distance, apd)
         push!(ave_path_distance_err, apd_err)
+        push!(postman, post)
+        push!(postman_err, post_err)
     end
 
     # Save data
     d = Dict{Symbol, Any}()
     @pack! d = num_pairs, grid_size, perc_range, num_trials, perf_data, perf_err, path_data, path_err, ave_path_distance,
-    ave_path_distance_err
+    ave_path_distance_err, postman, postman_err
     save("$datafile.jld", "data", d)
 
 else
@@ -60,7 +64,8 @@ else
         error("$datafile.jld not found in working directory")
     end
     d = load("$datafile.jld")["data"]
-    @unpack num_pairs, grid_size, perc_range, num_trials, perf_data, perf_err, path_data, path_err, ave_path_distance, ave_path_distance_err = d
+    @unpack num_pairs, grid_size, perc_range, num_trials, perf_data, perf_err, path_data, path_err, ave_path_distance, ave_path_distance_err,
+    postman, postman_err = d
 end
 
 # Get values for x axis
@@ -86,24 +91,38 @@ P2e = [path_err[i][3]/num_pairs for i in 1:length(perc_range[1]:perc_range[2]:pe
 P3e = [path_err[i][4]/num_pairs for i in 1:length(perc_range[1]:perc_range[2]:perc_range[3])]
 P4e = [path_err[i][5]/num_pairs for i in 1:length(perc_range[1]:perc_range[2]:perc_range[3])]
 
-# Plot
-plot(x, loss, ylims=(0,1), seriestype = :scatter, yerror = loss_err, label=L"$\eta$",
-legend=:bottomright, xguidefontsize=14, tickfontsize=12)
-plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$")
+pathratio =  postman ./ ave_path_distance
+
+##### Plot cost_percolation #####
+msize = 5
+# color_palette = palette(:lightrainbow, 4),
+plot(x, loss, ylims=(0,1), seriestype = :scatter, yerror = loss_err, label=L"\eta",
+legend=:top, guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
+markersize=msize, size=(600,400), color = :Dodgerblue, markershape=:utriangle)
+ylabel!("Costs")
+plot!(x, z, seriestype = :scatter, yerror = z_err, markersize=msize, label=L"F",
+color = :Crimson)
 # Adding new ave_shortest_path costs
 f = dB_to_Z.(ave_path_distance)
 e = dB_to_P.(ave_path_distance)
-plot!(x, f, seriestype = :scatter, label="f", legend= true)
-plot!(x, e, seriestype = :scatter, label="e", legend= true)
-xaxis!(L"$\textrm{Probability of Edge Removal}$")
+plot!(x, f, linewidth=4, markersize=msize, label=L"$\textrm{Conditional Manhattan } F$",
+color=:Tomato)
+plot!(x, e, linewidth=4, markersize=msize, label=L"$\textrm{Conditional Manhattan } \eta$",
+color=:LightSkyBlue)
+# TODO: Try cost scaled by path_ratio
+# xaxis!(L"$\textrm{Probability of Edge Removal}$")
 savefig("plots/cost_percolation.pdf")
 savefig("plots/cost_percolation.png")
 
-plot(x, P0, ylims=(0,1), linewidth=2, yerr = P0e, label=L"$P_0$", legend= :right)
-plot!(x, P1, linewidth=2, yerr = P1e, label=L"$P_1$")
-plot!(x, P2, linewidth=2, yerr = P2e, label=L"$P_2$")
-plot!(x, P3, linewidth=2, yerr = P3e, label=L"$P_3$")
-plot!(x, P4, linewidth=2, yerr = P3e, label=L"$P_4$")
+##### Plot path_percolation #####
+plot(x, P0, ylims=(0,1), seriestype=:scatter, yerr = P0e, label=L"$P_0$", legend= :right,
+guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
+color_palette = palette(:plasma, 5), markersize=5)
+yaxis!("Path probability")
+plot!(x, P1, seriestype=:scatter, yerr = P1e, label=L"$P_1$", markersize=5)
+plot!(x, P2, seriestype=:scatter, yerr = P2e, label=L"$P_2$", markersize=5)
+plot!(x, P3, seriestype=:scatter, yerr = P3e, label=L"$P_3$", markersize=5)
+plot!(x, P4, seriestype=:scatter, yerr = P3e, label=L"$P_4$", markersize=5)
 xaxis!(L"$\textrm{Probability of Edge Removal}$")
 savefig("plots/path_percolation.pdf")
 savefig("plots/path_percolation.png")
@@ -117,9 +136,25 @@ savefig("plots/path_percolation.png")
 # plot!(x, e, seriestype = :scatter, label="e", legend= true)
 # plot!(x, loss, ylims=(0,1), seriestype = :scatter, yerror = loss_err, label=L"$\eta$")
 # plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$")
-plot(x, ave_path_distance, yerr = ave_path_distance_err, seriestype = :scatter)
+
+##### Plot path_distance_percolation #####
+plot(x, ave_path_distance, yerr = ave_path_distance_err, seriestype = :scatter, label="Average Manhattan distance", legend = :bottomleft,
+ylims = (0,10), right_margin = 15Plots.mm, guidefontsize=14, tickfontsize=12,
+legendfontsize=8, fontfamily="computer modern", markersize=5, color=:orange)
+ylabel!("Path distance")
+plot!(x, postman, yerr=postman_err, seriestype = :scatter, label="Average shortest path distance",
+markersize=5, color=:magenta)
+
+# Plot ratio of postman with man
+pathratio =  postman ./ ave_path_distance
+pathratio_err = ((ave_path_distance_err ./ ave_path_distance) + (postman_err ./ postman)) .* pathratio
+plot!(twinx(), x, pathratio, yerr = pathratio_err, seriestype = :scatter, color= :pink,
+ylabel="Ratio", label="Path ratio", legend = :bottomright, guidefontsize=14, xticks=false, tickfontsize=12,
+ylims = (0,1.6), markersize=4, markershape=:square)
+# ylabel!("Ratio")
+
 # Plot horizontal line for ave manhattan distance for 10x10 grid:
 mandist = ones(length(x)) .* 6.67
-plot!(x, mandist, linewidth=2)
+plot!(x, mandist, linewidth=2, label="Analytic Manhattan distance")
 savefig("plots/path_distance_percolation.pdf")
 savefig("plots/path_distance_percolation.png")
