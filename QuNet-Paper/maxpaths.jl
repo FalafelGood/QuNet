@@ -237,48 +237,48 @@ savefig("plots/cost_maxpaths.pdf")
 
 
 ##### plot elog_cost_maxpaths #####
-plot(x, loss_arr1, seriestype = :scatter, label=L"$\eta_1$", xlims=(0, max_size+11), color = :red,
+plot(x, loss_arr1, seriestype = :scatter, label=L"$\eta_1$", xlims=(0, max_size+11), color_palette = palette(:Spectral_4, 4),
 markershape = :utriangle, legend=:best, guidefontsize=14, tickfontsize=12, legendfontsize=8,
 fontfamily="computer modern", markersize=5, yaxis=:log)
 # plot!(x, z_arr1 .- .5, seriestype = :scatter, label=L"$F_1$", color =:red)
-plot!(x, loss_arr2, seriestype = :scatter, label=L"$\eta_2$", color =:yellow, markershape=:utriangle,
+plot!(x, loss_arr2, seriestype = :scatter, label=L"$\eta_2$", markershape=:utriangle,
 markersize=5)
 # plot!(x, z_arr2 .- .5, seriestype = :scatter, label=L"$F_2$", color =:yellow)
 # [3:end]
-plot!(x, loss_arr3, seriestype = :scatter, label=L"$\eta_3$", color =:green, markershape=:utriangle,
+plot!(x, loss_arr3, seriestype = :scatter, label=L"$\eta_3$", markershape=:utriangle,
 markersize=5)
 # plot!(x, z_arr3 .- .5, seriestype = :scatter, label=L"$F_3$", color =:green)
-plot!(x, loss_arr4, seriestype = :scatter, label=L"$\eta_3$", color =:blue, markershape=:utriangle,
+plot!(x, loss_arr4, seriestype = :scatter, label=L"$\eta_3$", markershape=:utriangle,
 markersize=5)
 # plot!(x, z_arr4 .- .5, seriestype = :scatter, label=L"$F_4$", color =:blue)
 yaxis!("Costs")
 
-plot!(x, ave_e, linewidth=2, label=L"$\textrm{Analytic } \eta$", color =:red)
+plot!(x, ave_e, linewidth=2, label=L"$\textrm{Analytic } \eta$")
 # plot!(x, ave_f .- .5, linewidth=2, label=L"$\textrm{ave } F$", linestyle=:dash, color =:red)
 # Plot 2 path purification
-plot!(x, ave_e2_worst, linewidth=2, label=L"$\eta_2 \textrm{ Est.}$", color =:gold)
+plot!(x, ave_e2_worst, linewidth=2, label=L"$\eta_2 \textrm{ Est.}$")
 # plot!(x, ave_f2_worst .- .5, linewidth=2, label=L"$\textrm{Worst case } F_2$", linestyle=:dot, color =:yellow)
 # # Plot 3 path purification
-plot!(x, ave_e3_worst, linewidth=2, label=L"$\eta_3 \textrm{ Est.}$", color =:green)
+plot!(x, ave_e3_worst, linewidth=2, label=L"$\eta_3 \textrm{ Est.}$")
 # plot!(x, ave_f3_worst .- .5, linewidth=2, label=L"$\textrm{Worst case } F_3$", linestyle=:dot, color =:green)
 # # Plot 4 path purification
-plot!(x, ave_e4_worst, linewidth=2, label=L"$\eta_4 \textrm{ Est.}$", color =:blue)
+plot!(x, ave_e4_worst, linewidth=2, label=L"$\eta_4 \textrm{ Est.}$")
 # plot!(x, ave_f4_worst .- .5, linewidth=2, label=L"$\textrm{Worst case } F_4$", linestyle=:dot, color =:blue)
 
 savefig("plots/elog_cost_maxpaths.png")
 savefig("plots/elog_cost_maxpaths.pdf")
 
 ##### plot flog_cost_maxpaths #####
-plot(x, z_arr1 .- .5, seriestype = :scatter, label=L"$F_1$", xlims=(0, max_size+11), color = :red,
+plot(x, z_arr1 .- .5, seriestype = :scatter, label=L"$F_1$", xlims=(0, max_size+11), color_palette = palette(:Spectral_4, 4),
 legend=:best, guidefontsize=14, tickfontsize=12, legendfontsize=8,
 fontfamily="computer modern", markersize=5, yaxis=:log)
-plot!(x, z_arr2 .- .5, seriestype = :scatter, label=L"$F_2$", color =:yellow, markersize=5)
-plot!(x, z_arr3 .- .5, seriestype = :scatter, label=L"$F_3$", color =:green, markersize=5)
-plot!(x, z_arr4 .- .5, seriestype = :scatter, label=L"$F_4$", color =:blue, markersize=5)
-plot!(x, ave_f .- .5, linewidth=2, label=L"$\textrm{Analytic } F$", color =:red)
-plot!(x, ave_f2_worst .- .5, linewidth=2, label=L"$F_2 \textrm{ Est.} $", color =:gold)
-plot!(x, ave_f3_worst .- .5, linewidth=2, label=L"$F_3 \textrm{ Est.}$", color =:green)
-plot!(x, ave_f4_worst .- .5, linewidth=2, label=L"$F_4 \textrm{ Est.}$", color =:blue)
+plot!(x, z_arr2 .- .5, seriestype = :scatter, label=L"$F_2$", markersize=5)
+plot!(x, z_arr3 .- .5, seriestype = :scatter, label=L"$F_3$", markersize=5)
+plot!(x, z_arr4 .- .5, seriestype = :scatter, label=L"$F_4$", markersize=5)
+plot!(x, ave_f .- .5, linewidth=2, label=L"$\textrm{Analytic } F$")
+plot!(x, ave_f2_worst .- .5, linewidth=2, label=L"$F_2 \textrm{ Est.} $")
+plot!(x, ave_f3_worst .- .5, linewidth=2, label=L"$F_3 \textrm{ Est.}$")
+plot!(x, ave_f4_worst .- .5, linewidth=2, label=L"$F_4 \textrm{ Est.}$")
 
 yaxis!("Costs")
 
@@ -451,13 +451,39 @@ P2e = [path_data4_err[i][3] for i in 1:length(path_data4_err)]
 P3e = [path_data4_err[i][4] for i in 1:length(path_data4_err)]
 P4e = [path_data4_err[i][5] for i in 1:length(path_data4_err)]
 
+# Plot analytical path probabilities
+probs = []
+probs_corner = []
+# probs_line = []
+for n in x
+    N_m = n^2 - 4*(n-1)
+    prob = N_m / n^2 * (N_m-1) / (n^2 - 1)
+    push!(probs, prob)
+
+    # Prob at least one node is a corner node
+    prob_corner = 4/n^2 + (n^2 - 4)/(n^2) * (4/(n^2-1))
+    push!(probs_corner, prob_corner)
+
+    # Prob that users end on same row or column
+    # prob_line = 2*(n-1)/(n^2 - 1)
+    # push!(probs_line, prob_line)
+end
+
+plot(x, zeros(length(x)), linewidth=2, xlims=(0, max_size+10),
+color_palette = palette(:plasma, 4), legend=:topright,
+guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
+markersize=5, label=false)
+plot!(x, probs_corner, linewidth=2, label=false)
+plot!(x, 1 .- probs .- probs_corner, linewidth=2, label=false)
+plot!(x, probs, linewidth=2, label=false )
+
 ##### Plot paths_maxpaths #####
 # colorarray = (collect(0:length(P1)-1)./(length(P1)-1))
 # palette([:purple, :green], 7)
 # color_palette = cgrad(:rainbow, 4, categorical = true)
 # cgrad(cs, [z], alpha = nothing, rev = false, scale = nothing, categorical = nothing)
 # cgrad(:plasma, [0.1, 0.9])
-plot(x, P1, yerr = P1e, seriestype = :scatter, label=L"P_1", xlims=(0, max_size+10),
+plot!(x, P1, yerr = P1e, seriestype = :scatter, label=L"P_1", xlims=(0, max_size+10),
 color_palette = palette(:plasma, 4), legend=:topright,
 guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
 markersize=5)

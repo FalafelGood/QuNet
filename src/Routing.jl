@@ -255,21 +255,19 @@ function greedy_multi_path!(network::QuNet.TemporalGraph, purification_method,
             end
 
             # If we found a path, and we haven't fixed a routing time:
-            if path_cv != nothing && route_layer_known == false
-                route_layer_known = true
-                last_edge = last(path)
-                # If last node of the path is asynchronus:
-                    # Remove all async edges except for the one at T = depth
-                    # This means all future paths will have to route to the same time
-                if last_edge.dst > network.nv * network.steps
-                    node = last_edge.src
-                    depth = QuNet.node_timedepth(T.nv, T.steps, node)
-                    # Remove all asynchronus edges except for that depth
-                    QuNet.fix_async_nodes_in_time(T, [node])
-                end
-            end
-
-
+            # if path_cv != nothing && route_layer_known == false
+            #     route_layer_known = true
+            #     last_edge = last(path)
+            #     # If last node of the path is asynchronus:
+            #         # Remove all async edges except for the one at T = depth
+            #         # This means all future paths will have to route to the same time
+            #     if last_edge.dst > network.nv * network.steps
+            #         node = last_edge.src
+            #         depth = QuNet.node_timedepth(T.nv, T.steps, node)
+            #         # Remove all asynchronus edges except for that depth
+            #         QuNet.fix_async_nodes_in_time(T, [node])
+            #     end
+            # end
         end
     end
 

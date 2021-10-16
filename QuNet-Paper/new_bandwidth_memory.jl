@@ -21,7 +21,7 @@ num_pairs = 50::Int64
 asynchronus_weight = 100::Int64
 maxpaths=4
 
-generate_new_data = false
+generate_new_data = true
 if generate_new_data == true
 
     # Generate ixi graph and extend it in time
@@ -42,12 +42,12 @@ if generate_new_data == true
                 # Extend in time without memory
                 T = QuNet.TemporalGraph(G, time_depth, memory_prob=0.0)
                 # Extend in time with memory links:
-                T_mem = QuNet.TemporalGraph(G, time_depth, memory_prob=i, memory_costs = unit_costvector())
+                T_mem = QuNet.TemporalGraph(G, time_depth, memory_prob=i, memory_costs = zero_costvector())
 
 
                 # Get i random userpairs. Ensure src nodes are fixed on T=1, dst nodes are asynchronus.
                 user_pairs = make_user_pairs(T, num_pairs, src_layer=-1, dst_layer=-1)
-                mem_user_pairs = make_user_pairs(T, num_pairs, src_layer=1, dst_layer=-1)
+                mem_user_pairs = make_user_pairs(T, num_pairs, src_layer=-1, dst_layer=-1)
 
                 # Add async nodes
                 QuNet.add_async_nodes!(T_mem, mem_user_pairs, ϵ=asynchronus_weight)

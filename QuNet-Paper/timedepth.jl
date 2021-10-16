@@ -20,12 +20,17 @@ end
 datafile = "data/timedepth"
 
 # Params
-num_trials = 1000::Int64
+# 15
+# 50
+# 10
+# 1000 trials
+num_trials = 100::Int64
 max_depth = 15::Int64
 num_pairs = 50::Int64
 grid_size = 10::Int64
+async_cost = 1000
 
-generate_new_data = false
+generate_new_data = true
 if generate_new_data == true
 
     perf_data = []
@@ -38,10 +43,9 @@ if generate_new_data == true
         G = GridNetwork(grid_size, grid_size)
         # Create a Temporal Graph from G with timedepth i
         T = QuNet.TemporalGraph(G, i, memory_costs = zero_costvector())
-        # Get random pairs of asynchronus nodes
-        user_pairs = make_user_pairs(T, num_pairs)
         # Get data
-        p, p_e, pat, pat_e = net_performance(T, num_trials, num_pairs, max_paths=4)
+        p, p_e, pat, pat_e = net_performance(T, num_trials, num_pairs, max_paths=4,
+        async_cost=async_cost)
         push!(perf_data, p)
         push!(perf_err, p_e)
         push!(path_data, pat)

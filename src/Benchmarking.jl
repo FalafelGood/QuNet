@@ -193,7 +193,8 @@ random user pairs. Ensure graph is refreshed before starting.
 """
 function net_performance(network::Union{QNetwork, QuNet.TemporalGraph},
     num_trials::Int64, num_pairs::Int64; max_paths=3, src_layer::Int64=-1,
-    dst_layer::Int64=-1, edge_perc_rate=0.0, get_apd=false, get_postman=false)
+    dst_layer::Int64=-1, edge_perc_rate=0.0, get_apd=false, get_postman=false,
+    async_cost=1)
 
     # Sample of average routing costs between end-users
     ave_cost_data = []
@@ -218,7 +219,7 @@ function net_performance(network::Union{QNetwork, QuNet.TemporalGraph},
         if typeof(network) == TemporalGraph
             user_pairs = make_user_pairs(network, num_pairs, src_layer=src_layer, dst_layer=dst_layer)
             # Add asynchronus nodes to the network copy
-            add_async_nodes!(net, user_pairs)
+            add_async_nodes!(net, user_pairs, ϵ=async_cost)
         else
             user_pairs = make_user_pairs(network, num_pairs)
         end

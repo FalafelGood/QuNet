@@ -119,9 +119,10 @@ P4e = [path_err[i][5]/i for i in 1:max_pairs]
 
 ##### Plot cost_userpair #####
 # color_palette = palette(:lightrainbow, 4)
-plot(x, loss, ylims=(0,1), seriestype = :scatter, yerror = loss_err, label=L"$\eta$",
-legend=:topright, guidefontsize=14, tickfontsize=12, legendfontsize=10, fontfamily="computer modern",
+plot(x, loss, ylims=(0,0.12), seriestype = :scatter, yerror = loss_err, label=L"$\eta$",
+legend=:bottomright, guidefontsize=14, tickfontsize=12, legendfontsize=10, fontfamily="computer modern",
 color=:Dodgerblue, markersize=5, markershape=:utriangle)
+plot!(x, x./9 .* .093 .*(1 .-P0), label="average number that get path")
 # xaxis!(L"$\textrm{Number of End User Pairs}$")
 yaxis!("Costs")
 
@@ -204,5 +205,8 @@ subplot=2, legend=false, yaxis=(:log10, [10^(-5), :auto]))
 savefig("plots/nopath_rate.png")
 savefig("plots/nopath_rate.pdf")
 # println(last_count)
+
+# Simple graph saturation explanation?
+plot(x, x.*(1 .-P0), label="average number of users that get a path")
 
 # plot!(x[1:20], 1 .- prob_last_nopath[1:20], seriestype = :scatter, inset = (1, bbox(0.10, 0.10, 0.5, 0.5, :bottom, :left)))
