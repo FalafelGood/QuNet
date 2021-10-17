@@ -78,17 +78,21 @@ loss_arr4 = collect(map(x->x["loss"], perf_data4))
 z_arr4 = collect(map(x->x["Z"], perf_data4))
 
 ##### Plot cost_maxpaths #####
-plot(x, loss_arr1, seriestype = :scatter, label=L"$\eta_1$", xlims=(0, max_size+11), color = :red,
+plot1 = plot(x, loss_arr1, seriestype = :scatter, label=L"$\eta_1$", xlims=(0, max_size+11),
 markershape = :utriangle, legend=:best, guidefontsize=14, tickfontsize=12, legendfontsize=8,
-fontfamily="computer modern", markersize=4)
-plot!(x, z_arr1, seriestype = :scatter, label=L"$F_1$", color =:red)
-plot!(x, loss_arr2, seriestype = :scatter, label=L"$\eta_2$", color =:blue, markershape=:utriangle)
-plot!(x, z_arr2, seriestype = :scatter, label=L"$F_2$", color =:blue)
+fontfamily="computer modern", markersize=5, color_palette = palette(:Spectral_4, 4))
+plot!(x, loss_arr2, seriestype = :scatter, label=L"$\eta_2$", markershape=:utriangle,
+markersize=5)
+
 # [3:end]
-plot!(x, loss_arr3, seriestype = :scatter, label=L"$\eta_3$", color =:green, markershape=:utriangle)
-plot!(x, z_arr3, seriestype = :scatter, label=L"$F_3$", color =:green)
-plot!(x, loss_arr4, seriestype = :scatter, label=L"$\eta_3$", color =:purple, markershape=:utriangle)
-plot!(x, z_arr4, seriestype = :scatter, label=L"$F_4$", color =:purple)
+plot!(x, loss_arr3, seriestype = :scatter, label=L"$\eta_3$", markershape=:utriangle,
+markersize=5)
+plot!(x, loss_arr4, seriestype = :scatter, label=L"$\eta_3$", markershape=:utriangle,
+markersize=5)
+plot!(x, z_arr1, seriestype = :scatter, label=L"$F_1$", markersize = 5)
+plot!(x, z_arr2, seriestype = :scatter, label=L"$F_2$", markersize = 5)
+plot!(x, z_arr3, seriestype = :scatter, label=L"$F_3$", markersize = 5)
+plot!(x, z_arr4, seriestype = :scatter, label=L"$F_4$", markersize = 5)
 yaxis!("Costs")
 
 # Plot analytic function for average cost:
@@ -113,8 +117,8 @@ for size in min_size:max_size
     push!(ave_f, f)
 end
 
-plot!(x, ave_e, linewidth=2, label=L"$\textrm{ave } \eta$", color =:orange)
-plot!(x, ave_f, linewidth=2, label=L"$\textrm{ave } F$", linestyle=:dash, color =:orange)
+# plot!(x, ave_e, linewidth=2, label=L"$\textrm{ave } \eta$")
+# plot!(x, ave_f, linewidth=2, label=L"$\textrm{ave } F$", linestyle=:dash)
 
 # # Get data for naive 2 path purification
 # naive_e2 = []
@@ -135,18 +139,20 @@ plot!(x, ave_f, linewidth=2, label=L"$\textrm{ave } F$", linestyle=:dash, color 
 # ave_f2 = []
 
 # 2 path-purification
-ave_e2_best = []
-ave_e2_worst = []
-ave_f2_best = []
-ave_f2_worst = []
-
+ave_e2_same = []
+ave_f2_same = []
+ave_e2_dif = []
+ave_f2_dif = []
 # 3-path purification
-ave_e3_worst = []
-ave_f3_worst = []
-
+ave_e3_same = []
+ave_f3_same = []
+ave_e3_dif = []
+ave_f3_dif = []
 # 4-path purification
-ave_e4_worst = []
-ave_f4_worst = []
+ave_e4_same = []
+ave_f4_same = []
+ave_e4_dif = []
+ave_f4_dif = []
 
 for size in min_size:max_size
     # Method 1
@@ -186,47 +192,64 @@ for size in min_size:max_size
     # e2 = (1-p)*e_dif + p*e_same
     # f2 = (1-p)*f_dif + p*f_same
 
-    # Method 4: Best and worst case
+    # Method 4:
+    # Average costs when users lie on different row/columns
     e_dif = dB_to_P(ave_dif(size))
     f_dif = dB_to_Z(ave_dif(size))
+    # Average cost when users lie on same row/column plus four average edges
+    e_dif4 = dB_to_P(ave_dif(size) + 4)
+    f_dif4 = dB_to_Z(ave_dif(size) + 4)
     # Average costs when users lie on same row/column
     e_same = dB_to_P(ave_same(size))
     f_same = dB_to_Z(ave_same(size))
     # Average cost when users lie on same row/column plus two average edges
     e_same2 = dB_to_P(ave_same(size) + 2)
     f_same2 = dB_to_Z(ave_same(size) + 2)
+    # "" + 8 average edges
+    e_same8 = dB_to_P(ave_same(size) + 8)
+    f_same8 = dB_to_Z(ave_same(size) + 8)
+
+    # 2 Purification
     # Average purification cost when users lie on different rows/columns
-    e_worst, f_worst = QuNet.purify(e_dif, e_dif, f_dif, f_dif)
+    e2_dif, f2_dif = QuNet.purify(e_dif, e_dif, f_dif, f_dif)
     # Average purification cost when same row/column
-    e_best, f_best = QuNet.purify(e_same, e_same2, f_same, f_same2)
+    e2_same, f2_same = QuNet.purify(e_same, e_same2, f_same, f_same2)
 
-    push!(ave_e2_best, e_best)
-    push!(ave_e2_worst, e_worst)
-    push!(ave_f2_best, f_best)
-    push!(ave_f2_worst, f_worst)
+    push!(ave_e2_same, e2_same)
+    push!(ave_f2_same, f2_same)
+    push!(ave_e2_dif, e2_dif)
+    push!(ave_f2_dif, f2_dif)
 
-    e_dif4 = dB_to_P(ave_dif(size) + 4)
-    f_dif4 = dB_to_Z(ave_dif(size) + 4)
-    e_worst3, f_worst3 = QuNet.purify(e_dif4, e_worst, f_dif4, f_worst)
-    e_worst4, f_worst4 = QuNet.purify(e_dif4, e_worst3, f_dif4, f_worst3)
+    # 3 Purification
+    e3_dif, f3_dif = QuNet.purify(e_dif4, e2_dif, f_dif4, f2_dif)
+    e3_same, f3_same = QuNet.purify(e2_same, e_same2, f2_same, f_same2)
 
-    push!(ave_e3_worst, e_worst3)
-    push!(ave_f3_worst, f_worst3)
-    push!(ave_e4_worst, e_worst4)
-    push!(ave_f4_worst, f_worst4)
+    push!(ave_e3_dif, e3_dif)
+    push!(ave_f3_dif, f3_dif)
+    push!(ave_e3_same, e3_same)
+    push!(ave_f3_same, f3_same)
+
+    # 4 Purification
+    e4_dif, f4_dif = QuNet.purify(e_dif4, e3_dif, f_dif4, f3_dif)
+    e4_same, f4_same = QuNet.purify(e3_same, e_same8, f3_same, f_same8)
+
+    push!(ave_e4_dif, e4_dif)
+    push!(ave_f4_dif, f4_dif)
+    push!(ave_e4_same, e4_same)
+    push!(ave_f4_same, f4_same)
 end
 
 
 # plot!(x, ave_e2_best, linewidth=2, label=L"$\textrm{Best case } E_2$", linestyle=:dot, color =:blue)
 # plot!(x, ave_f2_best, linewidth=2, label=L"$\textrm{Best case } F_2$", linestyle=:dot, color =:blue)
-plot!(x, ave_e2_worst, linewidth=2, label=L"$\textrm{Worst case } E_2$", color =:blue)
-plot!(x, ave_f2_worst, linewidth=2, label=L"$\textrm{Worst case } F_2$", linestyle=:dot, color =:blue)
-# Plot 3 path purification
-plot!(x, ave_e3_worst, linewidth=2, label=L"$\textrm{Worst case } E_3$", color =:green)
-plot!(x, ave_f3_worst, linewidth=2, label=L"$\textrm{Worst case } F_3$", linestyle=:dot, color =:green)
-# Plot 4 path purification
-plot!(x, ave_e4_worst, linewidth=2, label=L"$\textrm{Worst case } E_4$", color =:purple)
-plot!(x, ave_f4_worst, linewidth=2, label=L"$\textrm{Worst case } F_4$", linestyle=:dot, color =:purple)
+# plot!(x, ave_e2_worst, linewidth=2, label=L"$\textrm{Worst case } E_2$", color =:blue)
+# plot!(x, ave_f2_worst, linewidth=2, label=L"$\textrm{Worst case } F_2$", linestyle=:dot, color =:blue)
+# # Plot 3 path purification
+# plot!(x, ave_e3_worst, linewidth=2, label=L"$\textrm{Worst case } E_3$", color =:green)
+# plot!(x, ave_f3_worst, linewidth=2, label=L"$\textrm{Worst case } F_3$", linestyle=:dot, color =:green)
+# # Plot 4 path purification
+# plot!(x, ave_e4_worst, linewidth=2, label=L"$\textrm{Worst case } E_4$", color =:purple)
+# plot!(x, ave_f4_worst, linewidth=2, label=L"$\textrm{Worst case } F_4$", linestyle=:dot, color =:purple)
 
 # plot!(x, ave_e2, linewidth=2, label=L"$\textrm{ave } F_2$", linestyle=:dot, color =:black)
 # plot!(x, ave_f2, linewidth=2, label=L"$\textrm{ave } F_2$", linestyle=:dot, color =:black)
@@ -237,48 +260,36 @@ savefig("plots/cost_maxpaths.pdf")
 
 
 ##### plot elog_cost_maxpaths #####
-plot(x, loss_arr1, seriestype = :scatter, label=L"$\eta_1$", xlims=(0, max_size+11), color_palette = palette(:Spectral_4, 4),
+plot2 = plot(x, loss_arr1, seriestype = :scatter, label=L"$\eta_1$", xlims=(0, max_size+11), color_palette = palette(:Spectral_4, 4),
 markershape = :utriangle, legend=:best, guidefontsize=14, tickfontsize=12, legendfontsize=8,
 fontfamily="computer modern", markersize=5, yaxis=:log)
-# plot!(x, z_arr1 .- .5, seriestype = :scatter, label=L"$F_1$", color =:red)
 plot!(x, loss_arr2, seriestype = :scatter, label=L"$\eta_2$", markershape=:utriangle,
 markersize=5)
-# plot!(x, z_arr2 .- .5, seriestype = :scatter, label=L"$F_2$", color =:yellow)
-# [3:end]
 plot!(x, loss_arr3, seriestype = :scatter, label=L"$\eta_3$", markershape=:utriangle,
 markersize=5)
-# plot!(x, z_arr3 .- .5, seriestype = :scatter, label=L"$F_3$", color =:green)
 plot!(x, loss_arr4, seriestype = :scatter, label=L"$\eta_3$", markershape=:utriangle,
 markersize=5)
-# plot!(x, z_arr4 .- .5, seriestype = :scatter, label=L"$F_4$", color =:blue)
 yaxis!("Costs")
+plot!(x, ave_e, linewidth=2, label=L"$\textrm{Analytic } \eta_1$")
+plot!(x, ave_e2_dif, fillrange = ave_e2_same, alpha=0.3, linewidth=2, label=L"$\eta_2 \textrm{ Est.}$")
+plot!(x, ave_e3_dif, fillrange = ave_e3_same, alpha=0.3, linewidth=2, label=L"$\eta_3 \textrm{ Est.}$")
+plot!(x, ave_e4_dif, fillrange = ave_e4_same, alpha=0.3, linewidth=2, label=L"$\eta_4 \textrm{ Est.}$")
 
-plot!(x, ave_e, linewidth=2, label=L"$\textrm{Analytic } \eta$")
-# plot!(x, ave_f .- .5, linewidth=2, label=L"$\textrm{ave } F$", linestyle=:dash, color =:red)
-# Plot 2 path purification
-plot!(x, ave_e2_worst, linewidth=2, label=L"$\eta_2 \textrm{ Est.}$")
-# plot!(x, ave_f2_worst .- .5, linewidth=2, label=L"$\textrm{Worst case } F_2$", linestyle=:dot, color =:yellow)
-# # Plot 3 path purification
-plot!(x, ave_e3_worst, linewidth=2, label=L"$\eta_3 \textrm{ Est.}$")
-# plot!(x, ave_f3_worst .- .5, linewidth=2, label=L"$\textrm{Worst case } F_3$", linestyle=:dot, color =:green)
-# # Plot 4 path purification
-plot!(x, ave_e4_worst, linewidth=2, label=L"$\eta_4 \textrm{ Est.}$")
-# plot!(x, ave_f4_worst .- .5, linewidth=2, label=L"$\textrm{Worst case } F_4$", linestyle=:dot, color =:blue)
 
 savefig("plots/elog_cost_maxpaths.png")
 savefig("plots/elog_cost_maxpaths.pdf")
 
 ##### plot flog_cost_maxpaths #####
-plot(x, z_arr1 .- .5, seriestype = :scatter, label=L"$F_1$", xlims=(0, max_size+11), color_palette = palette(:Spectral_4, 4),
+plot3 = plot(x, z_arr1 .- .5, seriestype = :scatter, label=L"$F_1$", xlims=(0, max_size+11), color_palette = palette(:Spectral_4, 4),
 legend=:best, guidefontsize=14, tickfontsize=12, legendfontsize=8,
 fontfamily="computer modern", markersize=5, yaxis=:log)
 plot!(x, z_arr2 .- .5, seriestype = :scatter, label=L"$F_2$", markersize=5)
 plot!(x, z_arr3 .- .5, seriestype = :scatter, label=L"$F_3$", markersize=5)
 plot!(x, z_arr4 .- .5, seriestype = :scatter, label=L"$F_4$", markersize=5)
 plot!(x, ave_f .- .5, linewidth=2, label=L"$\textrm{Analytic } F$")
-plot!(x, ave_f2_worst .- .5, linewidth=2, label=L"$F_2 \textrm{ Est.} $")
-plot!(x, ave_f3_worst .- .5, linewidth=2, label=L"$F_3 \textrm{ Est.}$")
-plot!(x, ave_f4_worst .- .5, linewidth=2, label=L"$F_4 \textrm{ Est.}$")
+plot!(x, ave_f2_dif .- .5, fillrange = ave_f2_same .- .5, alpha=0.3, linewidth=2, label=L"$F_2 \textrm{ Est.} $")
+plot!(x, ave_f3_dif .- .5, fillrange = ave_f3_same .- .5, alpha=0.3, linewidth=2, label=L"$F_3 \textrm{ Est.}$")
+plot!(x, ave_f4_dif .- .5, fillrange = ave_f4_same .- .5, alpha=0.3, linewidth=2, label=L"$F_4 \textrm{ Est.}$")
 
 yaxis!("Costs")
 
@@ -410,6 +421,8 @@ for size in min_size:max_size
     push!(same_f4, sf4)
 end
 
+
+# Plot "testcost_maxpaths"
 plot(x, loss_arr1, seriestype = :scatter, label=L"$\eta_1$", xlims=(0, max_size+10), color = :red,
 legend=:best, legendfontsize = 7, xguidefontsize = 10, tickfontsize = 10, yaxis=:log)
 plot!(x, z_arr1 .- .5, seriestype = :scatter, label=L"$F_1$", color =:red)
@@ -469,7 +482,8 @@ for n in x
     # push!(probs_line, prob_line)
 end
 
-plot(x, zeros(length(x)), linewidth=2, xlims=(0, max_size+10),
+##### Plot paths_maxpaths #####
+plot4 = plot(x, zeros(length(x)), linewidth=2, xlims=(0, max_size+10),
 color_palette = palette(:plasma, 4), legend=:topright,
 guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
 markersize=5, label=false)
@@ -477,7 +491,7 @@ plot!(x, probs_corner, linewidth=2, label=false)
 plot!(x, 1 .- probs .- probs_corner, linewidth=2, label=false)
 plot!(x, probs, linewidth=2, label=false )
 
-##### Plot paths_maxpaths #####
+
 # colorarray = (collect(0:length(P1)-1)./(length(P1)-1))
 # palette([:purple, :green], 7)
 # color_palette = cgrad(:rainbow, 4, categorical = true)
@@ -497,7 +511,7 @@ plot!(x, P3, yerr = P3e, seriestype = :scatter, label=L"P_3", markersize=5)
 plot!(x, P4, yerr = P4e, seriestype = :scatter, label=L"P_4", markersize=5)
 
 xlabel!("Gridsize")
-ylabel!("Path rate")
+ylabel!("Path probability")
 savefig("plots/path_maxpaths.png")
 savefig("plots/path_maxpaths.pdf")
 
@@ -521,3 +535,8 @@ savefig("plots/path_maxpaths.pdf")
 #
 # savefig("plots/cost_maxpathslog.png")
 # savefig("plots/cost_maxpathslog.pdf")
+
+
+##### Plot bigfig_maxpaths #####
+scale = 1.75
+plot(plot1, plot2, plot4, plot3, layout = 4, size = (scale * 600, scale * 400))

@@ -15,11 +15,12 @@ datafile = "data/gridsize"
 num_trials = 500::Int64
 num_pairs = 50::Int64
 min_size = 10::Int64
+#150
 max_size = 150::Int64
 # Increment constant
 inc = 5::Int64
 
-generate_new_data = false
+generate_new_data = true
 if generate_new_data == true
 
     perf_data = []
