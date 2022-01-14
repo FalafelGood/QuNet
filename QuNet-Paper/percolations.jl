@@ -96,7 +96,7 @@ pathratio =  postman ./ ave_path_distance
 ##### Plot cost_percolation #####
 msize = 5
 # color_palette = palette(:lightrainbow, 4),
-plot(x, loss, ylims=(0,1), seriestype = :scatter, yerror = loss_err, label=L"\eta",
+cost_percolations = plot(x, loss, ylims=(0,1), seriestype = :scatter, yerror = loss_err, label=L"\eta",
 legend=:top, guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
 markersize=msize, size=(600,400), color = :Dodgerblue, markershape=:utriangle)
 ylabel!("Costs")
@@ -115,7 +115,7 @@ savefig("plots/cost_percolation.pdf")
 savefig("plots/cost_percolation.png")
 
 ##### Plot path_percolation #####
-plot(x, P0, ylims=(0,1), seriestype=:scatter, yerr = P0e, label=L"$P_0$", legend= :right,
+path_percolations = plot(x, P0, ylims=(0,1), seriestype=:scatter, yerr = P0e, label=L"$P_0$", legend= :right,
 guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
 color_palette = palette(:plasma, 5), markersize=5)
 yaxis!("Path probability")
@@ -138,7 +138,7 @@ savefig("plots/path_percolation.png")
 # plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$")
 
 ##### Plot path_distance_percolation #####
-plot(x, ave_path_distance, yerr = ave_path_distance_err, seriestype = :scatter, label="Average Manhattan distance", legend = :bottomleft,
+path_distance_percolation = plot(x, ave_path_distance, yerr = ave_path_distance_err, seriestype = :scatter, label="Average Manhattan distance", legend = :bottomleft,
 ylims = (0,10), right_margin = 15Plots.mm, guidefontsize=14, tickfontsize=12,
 legendfontsize=8, fontfamily="computer modern", markersize=5, color=:orange)
 ylabel!("Path distance")
@@ -148,9 +148,9 @@ markersize=5, color=:magenta)
 # Plot ratio of postman with man
 pathratio =  postman ./ ave_path_distance
 pathratio_err = ((ave_path_distance_err ./ ave_path_distance) + (postman_err ./ postman)) .* pathratio
-plot!(twinx(), x, pathratio, yerr = pathratio_err, seriestype = :scatter, color= :pink,
-ylabel="Ratio", label="Path ratio", legend = :bottomright, guidefontsize=14, xticks=false, tickfontsize=12,
-ylims = (0,1.6), markersize=4, markershape=:square)
+# plot!(twinx(), x, pathratio, yerr = pathratio_err, seriestype = :scatter, color= :pink,
+# ylabel="Ratio", label="Path ratio", legend = :bottomright, guidefontsize=14, xticks=false, tickfontsize=12,
+# ylims = (0,1.6), markersize=4, markershape=:square)
 # ylabel!("Ratio")
 
 # Plot horizontal line for ave manhattan distance for 10x10 grid:
@@ -158,3 +158,44 @@ mandist = ones(length(x)) .* 6.67
 plot!(x, mandist, linewidth=2, label="Analytic Manhattan distance")
 savefig("plots/path_distance_percolation.pdf")
 savefig("plots/path_distance_percolation.png")
+
+p_arr = []
+for i in collect(1:length(x))
+    D = ave_path_distance[i]
+    M = postman[i]
+    A = 2/3 * 10
+    p= abs(D - A)/abs(D-M+A-1)
+    push!(p_arr, p)
+end
+plot(x, p_arr)
+
+##### PLOT BIG PERC
+x_scale = 1
+y_scale = 3
+plot(cost_percolations, path_distance_percolation, path_percolations,
+layout = (3,1), size = (x_scale * 600, y_scale * 400),
+left_margin = 10Plots.mm, right_margin = 20Plots.mm)
+savefig("plots/big_percolations.png")
+savefig("plots/big_percolations.pdf")
+
+# PLOT LOG COST PERCOLATION
+##### Plot cost_percolation #####
+msize = 4.
+# x[msize, end]
+color_palette = palette(:lightrainbow, 4),
+plot(x, loss, ylims=(10^(-msize),1), seriestype = :scatter, yerror = loss_err, label=L"\eta",
+legend=:top, guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
+markersize=msize, size=(600,400), color = :Dodgerblue, markershape=:utriangle, yaxis=:log)
+ylabel!("Costs")
+
+# plot!(x, z, seriestype = :scatter, yerror = z_err, markersize=msize, label=L"F",
+# color = :Crimson)
+# Adding new ave_shortest_path costs
+# f = dB_to_Z.(ave_path_distance)
+# e = dB_to_P.(ave_path_distance)
+# plot!(x, f, linewidth=4, markersize=msize, label=L"$\textrm{Conditional Manhattan } F$",
+# color=:Tomato)
+# plot!(x, e, linewidth=4, markersize=msize, label=L"$\textrm{Conditional Manhattan } \eta$",
+# color=:LightSkyBlue)
+# TODO: Try cost scaled by path_ratio
+# xaxis!(L"$\textrm{Probability of Edge Removal}$")

@@ -78,21 +78,23 @@ loss_arr4 = collect(map(x->x["loss"], perf_data4))
 z_arr4 = collect(map(x->x["Z"], perf_data4))
 
 ##### Plot cost_maxpaths #####
-plot1 = plot(x, loss_arr1, seriestype = :scatter, label=L"$\eta_1$", xlims=(0, max_size+11),
-markershape = :utriangle, legend=:best, guidefontsize=14, tickfontsize=12, legendfontsize=8,
-fontfamily="computer modern", markersize=5, color_palette = palette(:Spectral_4, 4))
+plot1 = plot(x, z_arr1, seriestype = :scatter, label=L"$F_1$", markersize = 5,
+xlims=(0, max_size+11), legend=:best, guidefontsize=14,
+tickfontsize=12, legendfontsize=8,fontfamily="computer modern", color_palette = palette(:Spectral_4, 4))
+plot!(x, z_arr2, seriestype = :scatter, label=L"$F_2$", markersize = 5)
+plot!(x, z_arr3, seriestype = :scatter, label=L"$F_3$", markersize = 5)
+plot!(x, z_arr4, seriestype = :scatter, label=L"$F_4$", markersize = 5)
+
+plot!(x, loss_arr1, seriestype = :scatter, label=L"$\eta_1$", markershape = :utriangle,
+markersize=5)
 plot!(x, loss_arr2, seriestype = :scatter, label=L"$\eta_2$", markershape=:utriangle,
 markersize=5)
-
 # [3:end]
 plot!(x, loss_arr3, seriestype = :scatter, label=L"$\eta_3$", markershape=:utriangle,
 markersize=5)
 plot!(x, loss_arr4, seriestype = :scatter, label=L"$\eta_3$", markershape=:utriangle,
 markersize=5)
-plot!(x, z_arr1, seriestype = :scatter, label=L"$F_1$", markersize = 5)
-plot!(x, z_arr2, seriestype = :scatter, label=L"$F_2$", markersize = 5)
-plot!(x, z_arr3, seriestype = :scatter, label=L"$F_3$", markersize = 5)
-plot!(x, z_arr4, seriestype = :scatter, label=L"$F_4$", markersize = 5)
+title!("(a)")
 yaxis!("Costs")
 
 # Plot analytic function for average cost:
@@ -193,6 +195,12 @@ for size in min_size:max_size
     # f2 = (1-p)*f_dif + p*f_same
 
     # Method 4:
+    # CASE SAME
+    # L & L + 2 & L + 2 & L + 8
+
+    # Case DIF
+    # L & L & 4 + L & 4 + L
+
     # Average costs when users lie on different row/columns
     e_dif = dB_to_P(ave_dif(size))
     f_dif = dB_to_Z(ave_dif(size))
@@ -239,6 +247,17 @@ for size in min_size:max_size
     push!(ave_f4_same, f4_same)
 end
 
+# println("new")
+# println(ave_e2_same)
+# println(ave_e2_dif)
+# println(ave_e3_same)
+# println(ave_e3_dif)
+# println(ave_e4_same)
+# println(ave_e4_dif)
+
+# println(ave_f2_same)
+# println(ave_f3_same)
+# println(ave_f4_same)
 
 # plot!(x, ave_e2_best, linewidth=2, label=L"$\textrm{Best case } E_2$", linestyle=:dot, color =:blue)
 # plot!(x, ave_f2_best, linewidth=2, label=L"$\textrm{Best case } F_2$", linestyle=:dot, color =:blue)
@@ -269,6 +288,8 @@ plot!(x, loss_arr3, seriestype = :scatter, label=L"$\eta_3$", markershape=:utria
 markersize=5)
 plot!(x, loss_arr4, seriestype = :scatter, label=L"$\eta_3$", markershape=:utriangle,
 markersize=5)
+title!("(c)")
+xlabel!("Gridsize")
 yaxis!("Costs")
 plot!(x, ave_e, linewidth=2, label=L"$\textrm{Analytic } \eta_1$")
 plot!(x, ave_e2_dif, fillrange = ave_e2_same, alpha=0.3, linewidth=2, label=L"$\eta_2 \textrm{ Est.}$")
@@ -279,19 +300,39 @@ plot!(x, ave_e4_dif, fillrange = ave_e4_same, alpha=0.3, linewidth=2, label=L"$\
 savefig("plots/elog_cost_maxpaths.png")
 savefig("plots/elog_cost_maxpaths.pdf")
 
+##### plot quick test for Nathan #####
+# plot(x, ave_e2_same, linewidth=2, label=L"$\eta_2 \textrm{ Est.}$")
+# plot!(x, ave_e2_dif, linewidth=2, label=L"$\eta_2 dif \textrm{ Est.}$")
+# plot!(x, ave_e3_same, linewidth=2, label=L"$\eta_3 \textrm{ Est.}$")
+# plot!(x, ave_e3_dif, linewidth=2, label=L"$\eta_3 dif \textrm{ Est.}$")
+# plot!(x, ave_e4_same, linewidth=2, label=L"$\eta_4 \textrm{ Est.}$")
+# plot!(x, ave_e4_dif, linewidth=2, label=L"$\eta_4 dif \textrm{ Est.}$")
+
+plot(x, ave_f2_same, linewidth=2, label=L"$F_2 \textrm{ Est.}$")
+plot!(x, ave_f2_dif, linewidth=2, label=L"$F_2 dif \textrm{ Est.}$")
+plot!(x, ave_f3_same, linewidth=2, label=L"$F_3 \textrm{ Est.}$")
+plot!(x, ave_f3_dif, linewidth=2, label=L"$F_3 dif \textrm{ Est.}$")
+plot!(x, ave_f4_same, linewidth=2, label=L"$F_4 \textrm{ Est.}$")
+plot!(x, ave_f4_dif, linewidth=2, label=L"$F_4 dif \textrm{ Est.}$")
+
+savefig("plots/elog_cost_maxpaths.png")
+savefig("plots/elog_cost_maxpaths.pdf")
+
 ##### plot flog_cost_maxpaths #####
-plot3 = plot(x, z_arr1 .- .5, seriestype = :scatter, label=L"$F_1$", xlims=(0, max_size+11), color_palette = palette(:Spectral_4, 4),
+plot3 = plot(x, z_arr1 .- .5, seriestype = :scatter, label=L"$F_1 - 1/2$", xlims=(0, max_size+11), color_palette = palette(:Spectral_4, 4),
 legend=:best, guidefontsize=14, tickfontsize=12, legendfontsize=8,
 fontfamily="computer modern", markersize=5, yaxis=:log)
-plot!(x, z_arr2 .- .5, seriestype = :scatter, label=L"$F_2$", markersize=5)
-plot!(x, z_arr3 .- .5, seriestype = :scatter, label=L"$F_3$", markersize=5)
-plot!(x, z_arr4 .- .5, seriestype = :scatter, label=L"$F_4$", markersize=5)
-plot!(x, ave_f .- .5, linewidth=2, label=L"$\textrm{Analytic } F$")
-plot!(x, ave_f2_dif .- .5, fillrange = ave_f2_same .- .5, alpha=0.3, linewidth=2, label=L"$F_2 \textrm{ Est.} $")
-plot!(x, ave_f3_dif .- .5, fillrange = ave_f3_same .- .5, alpha=0.3, linewidth=2, label=L"$F_3 \textrm{ Est.}$")
-plot!(x, ave_f4_dif .- .5, fillrange = ave_f4_same .- .5, alpha=0.3, linewidth=2, label=L"$F_4 \textrm{ Est.}$")
+plot!(x, z_arr2 .- .5, seriestype = :scatter, label=L"$F_2 - 1/2$", markersize=5)
+plot!(x, z_arr3 .- .5, seriestype = :scatter, label=L"$F_3 - 1/2$", markersize=5)
+plot!(x, z_arr4 .- .5, seriestype = :scatter, label=L"$F_4 - 1/2$", markersize=5)
+plot!(x, ave_f .- .5, linewidth=2, label=L"$\textrm{Analytic 1 path}$")
+plot!(x, ave_f2_dif .- .5, fillrange = ave_f2_same .- .5, alpha=0.3, linewidth=2, label=L"$\textrm{2 path estimate} $")
+plot!(x, ave_f3_dif .- .5, fillrange = ave_f3_same .- .5, alpha=0.3, linewidth=2, label=L"$F_3 - 1/2\textrm{ Est.}$")
+plot!(x, ave_f4_dif .- .5, fillrange = ave_f4_same .- .5, alpha=0.3, linewidth=2, label=L"$F_4 - 1/2\textrm{ Est.}$")
 
 yaxis!("Costs")
+title!("(b)")
+
 
 savefig("plots/flog_cost_maxpaths.png")
 savefig("plots/flog_cost_maxpaths.pdf")
@@ -448,6 +489,7 @@ plot!(x, same_e4, linewidth=2, label=L"$\textrm{Same case } E_4$", color =:purpl
 plot!(x, same_f4 .- .5, linewidth=2, label=L"$\textrm{Same case } F_4$", color =:purple)
 
 xaxis!(L"$\textrm{Grid Size}$")
+title!("(d)")
 savefig("plots/testcost_maxpaths.png")
 savefig("plots/testcost_maxpaths.pdf")
 
@@ -483,7 +525,7 @@ for n in x
 end
 
 ##### Plot paths_maxpaths #####
-plot4 = plot(x, zeros(length(x)), linewidth=2, xlims=(0, max_size+10),
+plot4 = plot(x, zeros(length(x)), linewidth=2, xlims=(0, max_size+10), ylims=(0,1),
 color_palette = palette(:plasma, 4), legend=:topright,
 guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
 markersize=5, label=false)
@@ -512,6 +554,7 @@ plot!(x, P4, yerr = P4e, seriestype = :scatter, label=L"P_4", markersize=5)
 
 xlabel!("Gridsize")
 ylabel!("Path probability")
+title!("(d)")
 savefig("plots/path_maxpaths.png")
 savefig("plots/path_maxpaths.pdf")
 
@@ -539,4 +582,7 @@ savefig("plots/path_maxpaths.pdf")
 
 ##### Plot bigfig_maxpaths #####
 scale = 1.75
-plot(plot1, plot2, plot4, plot3, layout = 4, size = (scale * 600, scale * 400))
+plot(plot1, plot3, plot4, plot2, layout = 4, size = (scale * 600, scale * 400),
+left_margin = 5Plots.mm)
+savefig("plots/big_maxpaths.png")
+savefig("plots/big_maxpaths.pdf")

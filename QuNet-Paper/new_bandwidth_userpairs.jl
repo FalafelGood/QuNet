@@ -9,17 +9,21 @@ using LaTeXStrings
 using JLD
 using Parameters
 
-datafile = "data/bandwidth_userpairs"
+datafile = "data/hudsontest_bandwidth_userpairs"
 
 # Params
+# 1000
 num_trials = 1000::Int64
+# 50
 max_pairs = 50::Int64
+# 10
 grid_size = 10::Int64
+# 20
 time_depth = 20::Int64
-asynchronus_weight = 0.001
+asynchronus_weight = 10*eps(Float64)
 # maxpaths=4
 
-generate_new_data = true
+generate_new_data = false
 if generate_new_data == true
 
     # Generate ixi graph and extend it in time
@@ -39,6 +43,9 @@ if generate_new_data == true
     pathcount_mem = [[],[],[],[],[]]
     pathcount_mem_err = [[],[],[],[],[]]
 
+    # How many memories were used when maxpaths = 4?
+    max_path_mem_usage = []
+
     nummaxpaths = 4
 
     for maxpaths in 1:nummaxpaths
@@ -53,6 +60,7 @@ if generate_new_data == true
             println("Collecting for pairs : $i")
             raw_max_depth = []
             raw_max_depth_mem = []
+            mem_counts = []
 
             for j in 1:num_trials
                 # Extend in time without memory
@@ -93,6 +101,21 @@ if generate_new_data == true
                     push!(raw_pathcount_data, pathuse_count)
                     push!(raw_pathcount_mem, pathuse_count_mem)
                 end
+
+                # Collect memory usage data
+                memory_counter = 0
+                if maxpaths == nummaxpaths
+                    for ps in pathset
+                        for path in ps
+                            for edge in path
+                                if edge.dst - edge.src == grid_size^2
+                                    memory_counter += 1
+                                end
+                            end
+                        end
+                    end
+                    push!(mem_counts, memory_counter)
+                end
             end
 
             # get pathuse statistics:
@@ -109,6 +132,9 @@ if generate_new_data == true
                     push!(pathcount_mem_err[i], std(data_mem)/(sqrt(length(data_mem))))
                 end
             end
+
+            # Get memory count statistics:
+            push!(max_path_mem_usage, mean(mem_counts))
 
             # for i in 1:maxpaths+1
             #     data = [pathcount_data[j][i] for j in 1:num_trials]
@@ -132,7 +158,7 @@ if generate_new_data == true
 
     # Save data
     d = Dict{Symbol, Any}()
-    @pack! d = num_trials, max_pairs, grid_size, time_depth, asynchronus_weight, plot_data, error_data, max_depth_data,
+    @pack! d = num_trials, max_pairs, grid_size, time_depth, asynchronus_weight, max_depth_data,
     max_depth_mem_data, max_depth_err, max_depth_mem_err, pathcount_data, pathcount_mem, pathcount_data_err, pathcount_mem_err
     save("$datafile.jld", "data", d)
 
@@ -142,7 +168,7 @@ else
         error("$datafile.jld not found in working directory")
     end
     d = load("$datafile.jld")["data"]
-    @unpack num_trials, max_pairs, grid_size, time_depth, asynchronus_weight, plot_data, error_data, max_depth_data, max_depth_mem_data, max_depth_err, max_depth_mem_err = d
+    @unpack num_trials, max_pairs, grid_size, time_depth, asynchronus_weight, max_depth_data, max_depth_mem_data, max_depth_err, max_depth_mem_err = d
     # pathcount_data, pathcount_mem, pathcount_data_err, pathcount_mem_err = d
 end
 

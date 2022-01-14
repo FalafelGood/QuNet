@@ -8,115 +8,201 @@ using LaTeXStrings
 using JLD
 using Parameters
 
-datafile = "data/timedepth_test"
+datafile = "scrap/test_bandwidth_userpairs"
 
-num_trials = 100::Int64
-min_depth = 5
-max_depth = 10::Int64
-num_pairs = 50::Int64
+# Params
+# 1000
+num_trials = 1000::Int64
+# 50
+max_pairs = 50::Int64
+# 10
 grid_size = 10::Int64
-async_cost = 0.01
-src_layer= 5
-dst_layer= -1
+# 20
+time_depth = 20::Int64
+asynchronus_weight = 10*eps(Float64)
+# maxpaths=4
 
-perf_data = []
-perf_err = []
-path_data = []
-path_err = []
+generate_new_data = false
+if generate_new_data == true
 
-for i in min_depth:max_depth
-
-    # Debug
-    # global dst_layer
-    # if dst_layer >= i
-    #     spcl_dst_layer = i
-    # else
-    #     spcl_dst_layer = dst_layer
-    # end
-
-    # global src_layer
-    # if src_layer < i
-    #     spcl_src_layer = i
-    # else
-    #     spcl_src_layer = src_layer
-    # end
-
-    println("Collecting for time depth $i")
+    # Generate ixi graph and extend it in time
     G = GridNetwork(grid_size, grid_size)
-    # Create a Temporal Graph from G with timedepth i
-    T = QuNet.TemporalGraph(G, i, memory_costs = zero_costvector())
-    # Get random pairs of asynchronus nodes
-    user_pairs = make_user_pairs(T, num_pairs)
-    # Get data
-    p, p_e, pat, pat_e = net_performance(T, num_trials, num_pairs, max_paths=4,
-    async_cost=async_cost, src_layer=src_layer, dst_layer=dst_layer)
-    push!(perf_data, p)
-    push!(perf_err, p_e)
-    push!(path_data, pat)
-    push!(path_err, pat_e)
+    # # Extend in time with memory links:
+    # T_mem = QuNet.TemporalGraph(G, time_depth, memory_prob=1.0, memory_costs = unit_costvector())
+    # # Extend in time without memory
+    # T = QuNet.TemporalGraph(G, time_depth, memory_prob=0.0)
+
+    max_depth_data = [[],[],[],[]]
+    max_depth_err = [[],[],[],[]]
+    max_depth_mem_data = [[],[],[],[]]
+    max_depth_mem_err = [[],[],[],[]]
+
+    pathcount_data = [[],[],[],[],[]]
+    pathcount_data_err = [[],[],[],[],[]]
+    pathcount_mem = [[],[],[],[],[]]
+    pathcount_mem_err = [[],[],[],[],[]]
+
+    max_path_mem_usage = []
+
+    nummaxpaths = 4
+
+    for maxpaths in 1:nummaxpaths
+        numdings = 0
+        println("## Collecting for maxpath $maxpaths")
+
+        raw_pathcount_data = []
+        raw_pathcount_mem = []
+
+        # DEBUG
+        for i in 1:max_pairs
+            println("Collecting for pairs : $i")
+            raw_max_depth = []
+            raw_max_depth_mem = []
+            mem_counts = []
+
+            for j in 1:num_trials
+                # Extend in time without memory
+                T = QuNet.TemporalGraph(G, time_depth, memory_prob=0.0)
+                # Extend in time with memory links:
+                T_mem = QuNet.TemporalGraph(G, time_depth, memory_prob=1.0, memory_costs = zero_costvector())
+
+                # Get i random userpairs. Ensure src nodes are fixed on T=1, dst nodes are asynchronus.
+                user_pairs = make_user_pairs(T, i, src_layer=-1, dst_layer=-1)
+                mem_user_pairs = make_user_pairs(T, i, src_layer=-1, dst_layer=-1)
+
+                # Add async nodes
+                QuNet.add_async_nodes!(T_mem, mem_user_pairs, ϵ=asynchronus_weight)
+                QuNet.add_async_nodes!(T, user_pairs, ϵ=asynchronus_weight)
+
+                # Get pathset data
+                pathset_mem, dum1, pathuse_count_mem = QuNet.greedy_multi_path!(T_mem, QuNet.purify, mem_user_pairs, maxpaths)
+                pathset, dum1, pathuse_count = QuNet.greedy_multi_path!(T, QuNet.purify, user_pairs, maxpaths)
+                # Pathset is an array of vectors containing edges describing paths between end-user pairs
+                # Objective: find the largest timedepth used in the pathsets
+
+                max_depth = QuNet.max_timedepth(pathset, T)
+                max_depth_mem = QuNet.max_timedepth(pathset_mem, T)
+
+                if max_depth == time_depth
+                    numdings += 1
+                end
+
+                if max_depth_mem == time_depth
+                    numdings += 1
+                end
+
+                # Get the ratio of these two quantities. Add it to data array
+                push!(raw_max_depth, max_depth)
+                push!(raw_max_depth_mem, max_depth_mem)
+
+                if maxpaths == nummaxpaths
+                    push!(raw_pathcount_data, pathuse_count)
+                    push!(raw_pathcount_mem, pathuse_count_mem)
+                end
+
+                # Collect memory usage data
+                memory_counter = 0
+                if maxpaths == nummaxpaths
+                    for ps in pathset
+                        for path in ps
+                            for edge in path
+                                if edge.dst - edge.src == grid_size^2
+                                    memory_counter += 1
+                                end
+                            end
+                        end
+                    end
+                    push!(mem_counts, memory_counter)
+                end
+
+            end
+
+            # get pathuse statistics:
+            if maxpaths == nummaxpaths
+                ave_pathcounts = [0.0 for i in 0:maxpaths+1]
+                ave_pathcounts_err = [0.0 for i in 0:maxpaths+1]
+
+                for i in 1:maxpaths+1
+                    data = [raw_pathcount_data[j][i] for j in 1:num_trials]
+                    data_mem = [raw_pathcount_data[j][i] for j in 1:num_trials]
+                    push!(pathcount_data[i], mean(data))
+                    push!(pathcount_data_err[i], std(data)/(sqrt(length(data))))
+                    push!(pathcount_mem[i], mean(data_mem))
+                    push!(pathcount_mem_err[i], std(data_mem)/(sqrt(length(data_mem))))
+                end
+            end
+
+            # Get memory count statistics:
+            push!(max_path_mem_usage, mean(mem_counts))
+
+            # for i in 1:maxpaths+1
+            #     data = [pathcount_data[j][i] for j in 1:num_trials]
+            #     ave_pathcounts[i] = mean(data)
+            #     ave_pathcounts_err[i] = std(data)/(sqrt(length(data)))
+            # end
+
+            # Average the raw data, add it to plot data:
+            push!(max_depth_data[maxpaths], mean(raw_max_depth))
+            push!(max_depth_err[maxpaths], std(raw_max_depth)/sqrt(num_trials-1))
+            push!(max_depth_mem_data[maxpaths], mean(raw_max_depth_mem))
+            push!(max_depth_mem_err[maxpaths], std(raw_max_depth)/sqrt(num_trials-1))
+        end
+        println("buffer")
+        println("numdings for max_paths $maxpaths: $numdings")
+    end
+
+    # DEBUG
+    # println(pathcount_data)
+    # println(pathcount_mem)
+
+    # Save data
+    d = Dict{Symbol, Any}()
+    @pack! d = num_trials, max_pairs, grid_size, time_depth, asynchronus_weight, max_depth_data,
+    max_depth_mem_data, max_depth_err, max_depth_mem_err, pathcount_data, pathcount_mem, pathcount_data_err, pathcount_mem_err
+    save("$datafile.jld", "data", d)
+
+else
+    # Load data
+    if !isfile("$datafile.jld")
+        error("$datafile.jld not found in working directory")
+    end
+    d = load("$datafile.jld")["data"]
+    @unpack num_trials, max_pairs, grid_size, time_depth, asynchronus_weight, max_depth_data, max_depth_mem_data, max_depth_err, max_depth_mem_err = d
+    # pathcount_data, pathcount_mem, pathcount_data_err, pathcount_mem_err = d
 end
 
-# Collect data for horizontal lines:
-# println("Collecting data for asymptote")
-# as = asymptotic_costs(grid_size)
-# e_as = ones(length(min_depth:max_depth)) * as[1]
-# f_as = ones(length(min_depth:max_depth)) * as[2]
-
-# Get values for x axis
-# x = collect(1:(max_depth-min_depth))
-x = collect(min_depth:max_depth-1)
-
-# Extract from performance data
-loss = collect(map(x->x["loss"], perf_data))
-z = collect(map(x->x["Z"], perf_data))
-loss_err = collect(map(x->x["loss"], perf_err))
-z_err = collect(map(x->x["Z"], perf_err))
-
-# Extract from path data
-P0 = [path_data[i][1]/num_pairs for i in 1:(max_depth-min_depth)]
-P1 = [path_data[i][2]/num_pairs for i in 1:(max_depth-min_depth)]
-P2 = [path_data[i][3]/num_pairs for i in 1:(max_depth-min_depth)]
-P3 = [path_data[i][4]/num_pairs for i in 1:(max_depth-min_depth)]
-P4 = [path_data[i][5]/num_pairs for i in 1:(max_depth-min_depth)]
-
-# P0e = [path_err[i][1]/num_pairs for i in 1:(max_depth-min_depth)]
-# P1e = [path_err[i][2]/num_pairs for i in 1:(max_depth-min_depth)]
-# P2e = [path_err[i][3]/num_pairs for i in 1:(max_depth-min_depth)]
-# P3e = [path_err[i][4]/num_pairs for i in 1:(max_depth-min_depth)]
-# P4e = [path_err[i][5]/num_pairs for i in 1:(max_depth-min_depth)]
-
-println(P0)
-println(P1)
-println(P2)
-println(P3)
-println(P4)
-
 # Plot
-# after seriestype: marker = (5)
-plot(x, loss, ylims=(0,1), xlims=(min_depth, max_depth), seriestype = :scatter, yerror = loss_err, label=L"$\eta$",
-legend=:right, xguidefontsize=14, tickfontsize=12, legendfontsize=10, fontfamily="computer modern",
-markersize=5, color=:DodgerBlue, markershape =:utriangle)
-plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$", markersize=5, color=:Crimson)
+x = collect(1:max_pairs)
+# plot(x, plot_data, yerr = error_data, legend = false)
 
-# Plot asymptote
-# plot!(x, e_as, linestyle=:dot, color=:blue, linewidth=2, label=L"$\textrm{Asymptotic } \eta$")
-# plot!(x, f_as, linestyle=:dot, color=:red, linewidth=2, label=L"$\textrm{Asymptotic } F$")
-xaxis!(L"$\textrm{Time Depth of Tempral Meta-Graph}$")
 
-savefig("scrap/test_costtemporal.png")
+plot(x, max_depth_data[1], seriestype=:scatter, yerr = max_depth_err[1], label="max depth 1", legend=:topleft,
+guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
+color_palette = palette(:Spectral_4, 4), markersize=5)
+plot!(x, max_depth_data[2], seriestype=:scatter, yerr = max_depth_mem_err[2], label="max depth 2", markersize=5)
+plot!(x, max_depth_data[3], seriestype=:scatter, yerr = max_depth_mem_err[3], label="max depth 3", markersize=5)
+plot!(x, max_depth_data[4], seriestype=:scatter, yerr = max_depth_mem_err[4], label="max depth 4", markersize=5)
+# Spectral_4
+# :imola
+# :diverging_rainbow_bgymr_45_85_c67_n256
+# plot!(x, max_depth_data[2] ./ last(max_depth_data[2]) .* last(max_depth_data[1]), seriestype=:scatter, yerr = max_depth_mem_err[2], label="max depth 2", markersize=5)
+# plot!(x, max_depth_data[3] ./ last(max_depth_data[3]) .* last(max_depth_data[1]), seriestype=:scatter, yerr = max_depth_mem_err[3], label="max depth 3", markersize=5)
+# plot!(x, max_depth_data[4] ./ last(max_depth_data[4]) .* last(max_depth_data[1]), seriestype=:scatter, yerr = max_depth_mem_err[4], label="max depth 4", markersize=5)
+# alpha = 0.88
+# beta = 0.84
+# gamma = 0.83
+# plot!(x, max_depth_data[2] ./ (2 .* alpha) , seriestype=:scatter, yerr = max_depth_mem_err[2], label="max depth 2", markersize=5)
+# plot!(x, max_depth_data[3] ./ (3 .* beta) , seriestype=:scatter, label="max depth 3", markersize=5)
+# plot!(x, max_depth_data[4] ./ (4 .* gamma) , seriestype=:scatter, yerr = max_depth_mem_err[4], label="max depth 4", markersize=5)
 
-plot(x, P0, ylims=(0,1), xlims=(min_depth, max_depth), seriestype=:scatter, yerr = P0e, label=L"$P_0$", legend= :right,
-xguidefontsize=14, tickfontsize=12, legendfontsize=10, fontfamily="computer modern",
-markersize=5, color_palette = palette(:plasma, 10))
-plot!(x, P0, linewidth=1, label=false)
-plot!(x, P1, seriestype=:scatter, yerr = P1e, label=L"$P_1$", markersize=5)
-plot!(x, P1, linewidth=1, label=false)
-plot!(x, P2, seriestype=:scatter, yerr = P2e, label=L"$P_2$", markersize=5)
-plot!(x, P2, linewidth=1, label=false)
-plot!(x, P3, seriestype=:scatter, yerr = P3e, label=L"$P_3$", markersize=5)
-plot!(x, P3, linewidth=1, label=false)
-plot!(x, P4, seriestype=:scatter, yerr = P4e, label=L"$P_4$", markersize=5)
-plot!(x, P4, linewidth=1, label=false)
-xaxis!(L"$\textrm{Time Depth of Temporal Meta-Graph}$")
+plot!(x, max_depth_mem_data[1], seriestype=:scatter, yerr = max_depth_mem_err[1], label="max depth with memory 1", markershape=:utriangle, markersize=5)
+plot!(x, max_depth_mem_data[2], seriestype=:scatter, yerr = max_depth_mem_err[2], label="max depth with memory 2", markershape=:utriangle, markersize=5)
+plot!(x, max_depth_mem_data[3], seriestype=:scatter, yerr = max_depth_mem_err[3], label="max depth with memory 3", markershape=:utriangle, markersize=5)
+plot!(x, max_depth_mem_data[4], seriestype=:scatter, yerr = max_depth_mem_err[4], label="max depth with memory 4", markershape=:utriangle, markersize=5)
+xaxis!("Number of user pairs")
+yaxis!("Time depth")
+savefig("plots/bandwidth_with_userpairs.png")
+savefig("plots/bandwidth_with_userpairs.pdf")
 
-savefig("scrap/test_pathtemporal.png")
+# plot(x, pathcount_data[5], yerr=pathcount_data_err[5], seriestype=:scatter)
+# plot!(x, pathcount_mem[5], yerr=pathcount_mem_err[5], seriestype=:scatter)

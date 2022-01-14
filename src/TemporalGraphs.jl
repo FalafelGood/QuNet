@@ -78,7 +78,7 @@ function TemporalGraph(network::QNetwork, steps::Int64; memory_prob::Float64=1.0
                     # If the cost is zero, set it to epsilon so SimpleWeightedGraphs
                     # add it to the sparse adj. matrix.
                     if cost == 0
-                        cost = eps(Float64)
+                        cost = 1000*eps(Float64)
                     end
 
                     src = node + (t-1)*temp_graph.nv

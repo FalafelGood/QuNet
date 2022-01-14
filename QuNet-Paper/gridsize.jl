@@ -7,8 +7,10 @@ using LightGraphs, SimpleWeightedGraphs, GraphPlot, MetaGraphs, Plots, Colors, S
 using LaTeXStrings
 using JLD
 using Parameters
+using LsqFit
 
-datafile = "data/gridsize"
+datafile = "data/gridsize_highcost"
+# datafile = "data/gridsize_lowcost"
 
 # Params
 # 500
@@ -20,7 +22,7 @@ max_size = 150::Int64
 # Increment constant
 inc = 5::Int64
 
-generate_new_data = true
+generate_new_data = false
 if generate_new_data == true
 
     perf_data = []
@@ -104,15 +106,15 @@ ave_man_dist = 2/3 .* x
 # end
 
 # Convert ave_man_distance to costs:
-e_scale = 0.1
-f_scale = 0.1
+e_scale = 1 # 0.1
+f_scale = 1 # 0.1
 ave_man_e = dB_to_P.(e_scale * ave_man_dist)
 ave_man_f = dB_to_Z.(f_scale * ave_man_dist)
 
 ##### plot cost_gridsize #####
 plot(x, loss, ylims=(0,1), seriestype=:scatter, yerror = loss_err, label=L"$\eta$",
 legend=:topright, guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
-color=:DodgerBlue, markersize=5, markershape=:utriangle, xlims=(0,150))
+color=:DodgerBlue, markersize=5, markershape=:utriangle, xlims=(0,155))
 plot!(x, ave_man_e, seriestype = :scatter, label=L"\textrm{Average manhattan } \eta",
 markershape=:utriangle, markersize=5, color=:LightSkyBlue)
 plot!(x, z, seriestype=:scatter, yerror = z_err, label=L"$F$", markersize=5,
@@ -127,15 +129,26 @@ savefig("plots/cost_gridsize.pdf")
 
 
 ##### Plot log_cost_gridsize #####
-plot(x, loss, ylims=(0,1), seriestype=:scatter, yerror = loss_err, label=L"$\eta$",
-legend=:bottomleft, guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
-color=:DodgerBlue, markersize=5, markershape=:utriangle, xlims=(0,150), yaxis=(:log10, [10^-2.5, :auto]))
-plot!(x, ave_man_e, seriestype = :scatter, label=L"\textrm{Average manhattan } \eta",
-markershape=:utriangle, markersize=5, color=:LightSkyBlue)
-plot!(x, z .- 0.5, seriestype=:scatter, yerror = z_err, label=L"$F$", markersize=5,
+maxn = 21.0
+plot_log_cost_gridsize = plot(x, loss, seriestype=:scatter, yerror = loss_err, label=L"$\eta$",
+legend=:topright, guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
+color=:DodgerBlue, markersize=5, markershape=:utriangle, xlims=(0,155), yaxis=(:log10, [10^-maxn, :auto]))
+# plot!(x, ave_man_e, label=L"\textrm{Average manhattan } \eta", markersize=5, color=:LightSkyBlue)
+plot!(x, z .- 0.5, seriestype=:scatter, label=L"$F - 1/2$", markersize=5,
 color=:Crimson)
-plot!(x, ave_man_f .- 0.5, seriestype = :scatter, label=L"\textrm{Average manhattan } F",
-markersize=5, color=:Salmon)
+
+# Plot dotted line for fidelity
+# a = 0.16
+# z_appx = [exp(-j*a) for j in x]
+# plot!(x, z_appx, label=:false, color=:red, linestyle=:dot, linewidth=2)
+
+# Plot dotted fidelity log curve
+# Two parameter exponential model:
+@. model(x, p) = p[1]*exp(-x*p[2])
+fit = curve_fit(model, x, z .- 0.5, [0.5,0.5])
+mycoef = coef(fit)
+z_appx = [model(j, mycoef) for j in x]
+plot!(x, z_appx, label=:false, color=:red, linestyle=:dot, linewidth=2)
 
 # xaxis!(L"$\textrm{Grid Size}$")
 yaxis!("Cost")
@@ -152,9 +165,9 @@ println(z_err)
 
 
 ##### plot path_gridsize #####
-plot(x, P0, seriestype=:scatter, yerr = P0e, label=L"$P_0$", legend= :right,
+plot_path_gridsize = plot(x, P0, seriestype=:scatter, yerr = P0e, label=L"$P_0$", legend= :right,
 guidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
-color_palette = palette(:plasma, 5), markersize=5, xlims=(0,150))
+color_palette = palette(:plasma, 5), markersize=5, xlims=(0,155), ylims=(0,1))
 plot!(x, P1, seriestype=:scatter, yerr = P1e, label=L"$P_1$", markersize=5)
 plot!(x, P2, seriestype=:scatter, yerr = P2e, label=L"$P_2$", markersize=5)
 plot!(x, P3, seriestype=:scatter, yerr = P3e, label=L"$P_3$", markersize=5)
@@ -171,22 +184,23 @@ pathratio_err = ((ave_path_distance_err ./ ave_path_distance) + (postman_err ./ 
 
 # Get standard error for Bernouli trials estimating probability of no path:
 plnp_err = [sqrt(p*(1-p)/num_trials) for p in prob_last_nopath]
-plot(x, prob_last_nopath, xlims=(0,150), ylims=(0,1.3), yerr = plnp_err, seriestype=:scatter, legend= :bottomleft,
-xguidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
+plot_prob_last_path = plot(x, 1 .- prob_last_nopath, xlims=(0,155), ylims=(0,1), yerr = plnp_err, seriestype=:scatter,
+legend=:false, xguidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
 right_margin = 15Plots.mm, label="Path rate", markersize=5)
 
 # xaxis!("Gridsize")
-yaxis!("Rate that last pair does not find a path")
+yaxis!("Rate that last pair finds a path")
 
-plot!(twinx(), x, pathratio, ylims = (0,1.3), yerr = pathratio_err, seriestype = :scatter,
-color= :purple, ylabel="Ratio", label="Path ratio", legend = :bottomright, xticks=false,
-tickfontsize=12, xguidefontsize=14, markersize=5)
+# Plot path ratio
+# plot!(twinx(), x, pathratio, ylims = (0,1.3), yerr = pathratio_err, seriestype = :scatter,
+# color= :purple, ylabel="Ratio", label="Path ratio", legend = :bottomright, xticks=false,
+# tickfontsize=12, xguidefontsize=14, markersize=5)
 
 savefig("plots/nopath_gridsize.png")
 savefig("plots/nopath_gridsize.pdf")
 
 ##### Plot path_distance_gridsize #####
-plot(x, ave_path_distance, yerr = ave_path_distance_err, seriestype=:scatter, legend= :topleft,
+plot_path_distance_gridsize = plot(x, ave_path_distance, yerr = ave_path_distance_err, seriestype=:scatter, legend= :topleft,
 label="Average Manhattan distance", xguidefontsize=14, tickfontsize=12, legendfontsize=8, fontfamily="computer modern",
 markersize=5)
 plot!(x, postman, yerr = postman_err, seriestype=:scatter, label="Average shortest path distance",
@@ -202,5 +216,11 @@ color= :purple, ylabel="Test", label="Path ratio", legend = :bottomright, xticks
 savefig("plots/path_distance_gridsize.png")
 savefig("plots/path_distance_gridsize.pdf")
 
-# println("pathratio_err")
-# println(pathratio_err)
+##### PLOT BIG GRIDSIZE
+x_scale = 1
+y_scale = 3
+plot(plot_log_cost_gridsize, plot_prob_last_path, plot_path_gridsize,
+layout = (3,1), size = (x_scale * 600, y_scale * 400),
+left_margin = 10Plots.mm)
+savefig("plots/big_gridsize.png")
+savefig("plots/big_gridsize.pdf")

@@ -28,9 +28,9 @@ num_trials = 100::Int64
 max_depth = 15::Int64
 num_pairs = 50::Int64
 grid_size = 10::Int64
-async_cost = 1000
+async_cost = 10*eps(Float64)
 
-generate_new_data = true
+generate_new_data = false
 if generate_new_data == true
 
     perf_data = []
@@ -106,7 +106,7 @@ plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$", markersize=5, c
 # Plot asymptote
 plot!(x, e_as, linestyle=:dot, color=:blue, linewidth=2, label=L"$\textrm{Asymptotic } \eta$")
 plot!(x, f_as, linestyle=:dot, color=:red, linewidth=2, label=L"$\textrm{Asymptotic } F$")
-xaxis!(L"$\textrm{Time Depth of Tempral Meta-Graph}$")
+# xaxis!(L"$\textrm{Time Depth of Tempral Meta-Graph}$")
 
 savefig("plots/cost_temporal.png")
 savefig("plots/cost_temporal.pdf")

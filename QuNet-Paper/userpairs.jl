@@ -119,10 +119,10 @@ P4e = [path_err[i][5]/i for i in 1:max_pairs]
 
 ##### Plot cost_userpair #####
 # color_palette = palette(:lightrainbow, 4)
-plot(x, loss, ylims=(0,0.12), seriestype = :scatter, yerror = loss_err, label=L"$\eta$",
-legend=:bottomright, guidefontsize=14, tickfontsize=12, legendfontsize=10, fontfamily="computer modern",
+plot(x, loss, ylims=(0,1), seriestype = :scatter, yerror = loss_err, label=L"$\eta$",
+legend=:topright, guidefontsize=14, tickfontsize=12, legendfontsize=10, fontfamily="computer modern",
 color=:Dodgerblue, markersize=5, markershape=:utriangle)
-plot!(x, x./9 .* .093 .*(1 .-P0), label="average number that get path")
+# plot!(x, x./9 .* .093 .*(1 .-P0), label="average number that get path")
 # xaxis!(L"$\textrm{Number of End User Pairs}$")
 yaxis!("Costs")
 
@@ -135,16 +135,15 @@ z_per_user = []
 for (n, f) in enumerate(z)
     push!(z_per_user, (1-P0[n])*f)
 end
-plot!(x, loss_per_user, seriestype = :scatter, label=L"$\eta \textrm{ per user}$",
-markersize=5, markershape=:utriangle, color=:LightSkyBlue)
-
 plot!(x, z, seriestype = :scatter, yerror = z_err, label=L"$F$", markersize=5,
 color = :Crimson)
+plot!(x, loss_per_user, seriestype = :scatter, label=L"$\textrm{Unconditional } \eta$",
+markersize=5, markershape=:utriangle, color=:LightSkyBlue)
 
 # Try combining two plots:
-combo_per_user = loss_per_user .* z
-plot!(x, combo_per_user, seriestype = :scatter, label=L"$F \times \eta \textrm{ per user}$",
-markersize=4, markershape=:square, color=:mediumpurple)
+# combo_per_user = loss_per_user .* z
+# plot!(x, combo_per_user, seriestype = :scatter, label=L"$F \times \eta \textrm{ per user}$",
+# markersize=4, markershape=:square, color=:mediumpurple)
 
 savefig("plots/cost_userpair.png")
 savefig("plots/cost_userpair.pdf")
@@ -202,6 +201,8 @@ yaxis!(L"$\textrm{Rate that last pair finds path}$")
 
 plot!(x[1:20], 1 .- prob_last_nopath[1:20], seriestype = :scatter, inset = (1, bbox(0.05, 0.05, 0.33, 0.33, :top, :right)),
 subplot=2, legend=false, yaxis=(:log10, [10^(-5), :auto]))
+# Plot a constant curve onto subplot:
+# TODO:
 savefig("plots/nopath_rate.png")
 savefig("plots/nopath_rate.pdf")
 # println(last_count)

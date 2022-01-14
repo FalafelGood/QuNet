@@ -29,12 +29,21 @@ function Z_to_dB(Z::Float64)::Float64
 end
 
 """
+ORIGINAL FUNCTION
 Convert from decibelic dephasing to metric form
 """
 function dB_to_Z(dB::Float64)::Float64
     Z = (10^(-dB/10) + 1)/2
     return Z
 end
+
+# """
+# Convert from decibelic dephasing to metric form
+# """
+# function dB_to_Z(dB::Float64)::Float64
+#     Z = (10^(-dB/10))
+#     return Z
+# end
 
 
 function purify(E1::Float64,E2:: Float64,F1::Float64,F2::Float64)
