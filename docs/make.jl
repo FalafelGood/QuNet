@@ -2,7 +2,10 @@ using Documenter, Main.QuNet
 
 makedocs(
     sitename = "QuNet",
-    modules = [QuNet]
+    # modules = [QuNet]
+    pages = Any[
+        "Home" => "index.md"
+    ]
 )
 
 # deploydocs(
